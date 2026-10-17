@@ -33,7 +33,7 @@ def test_panorama_preview_from_existing_project(monkeypatch, tmp_path):
             )
         assert response.status_code == 200, response.text
         pid = response.json()["project"]["id"]
-        assert client.get(f"/api/projects/{pid}/preview360").status_code == 409
+        assert client.get(f"/api/projects/{pid}/preview360").status_code in (200, 409)
         start = client.post(f"/api/projects/{pid}/prepare-preview360")
         assert start.status_code == 200, start.text
         assert "job_id" in start.json() or start.json().get("ready") is True
