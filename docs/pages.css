@@ -44,3 +44,10 @@
  .history-actions{order:3;width:100%}
  .history-actions button{flex:1}
 }
+
+
+.edit-history-details{margin:5px 0 12px;font-size:12px;color:var(--muted)}
+.edit-history-details summary{cursor:pointer;min-height:30px;display:flex;align-items:center}
+.edit-history-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:5px;margin:6px 0}
+.edit-history-list button{font-size:11px;min-height:38px;padding:6px 8px;text-align:left}
+.edit-history-list button.current{border-color:var(--mint);color:#b7f7df}
