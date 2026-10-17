@@ -22,3 +22,4 @@ jobs:
           Path("/tmp/movie_modify_ui.js").write_text(script, encoding="utf-8")
           PY
           node --check /tmp/movie_modify_ui.js
+          node --check web/live_preview.js
