@@ -7,8 +7,9 @@ OpenCV.
 
 ## Requirements
 
-- Windows 10/11 (64-bit) or a current Linux distribution (Ubuntu 22.04/24.04
-  tested by Linux CI). Python 3.11 or newer is recommended.
+- Windows 10/11 (64-bit) or a current Linux distribution. Automated CI
+  runs on GitHub's windows-latest and ubuntu-latest runners; consumer PC hardware
+  and iPhone Safari need separate real-device confirmation. Python 3.11+ is recommended.
 - FFmpeg **and FFprobe** on PATH; the FFmpeg build must include libx264, AAC,
   v360 and sendcmd. 360 camera-native .insv/.360 files still need manufacturer
   stitching before import.
