@@ -6,13 +6,14 @@ Convert those to equirectangular MP4 with the vendor's tooling first.
 from __future__ import annotations
 
 import json
+import math
 import os
 import re
 import shutil
 import subprocess
 from pathlib import Path
 
-from .core import merge_intervals, parse_auto_editor_v1
+from .core import camera_at, merge_intervals, parse_auto_editor_v1
 
 
 def run(args: list[str], *, timeout: int = 7200) -> subprocess.CompletedProcess:
@@ -41,8 +42,8 @@ def inspect_video(path: Path) -> dict:
             "codec": video.get("codec_name", "unknown")}
 
 
-def view_filter(yaw: float = 0, pitch: float = 0, fov: float = 90) -> str:
-    return f"v360=input=equirect:output=flat:yaw={yaw:.3f}:pitch={pitch:.3f}:h_fov={fov:.3f}:v_fov={fov * 9 / 16:.3f}"
+def view_filter(yaw: float = 0, pitch: float = 0, fov: float = 90, *, name: str = "") -> str:
+    return f"v360{name}=input=equirect:output=flat:yaw={yaw:.3f}:pitch={pitch:.3f}:h_fov={fov:.3f}:v_fov={fov * 9 / 16:.3f}"
 
 
 def build_filters(projection: str, segment: dict, *, width: int = 1280, height: int = 720) -> str:
@@ -69,6 +70,36 @@ def preview_frame(source: Path, time: float, projection: str, yaw: float, pitch:
     if proc.returncode or not proc.stdout:
         raise RuntimeError(proc.stderr.decode(errors="replace")[-400:])
     return proc.stdout
+
+
+
+def panorama_frame(source: Path, time: float) -> bytes:
+    """Unprojected 2:1 360 panorama for touch-to-select targets."""
+    proc = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-ss", str(time),
+                           "-i", str(source), "-vf", "scale=960:480,setsar=1",
+                           "-frames:v", "1", "-f", "image2pipe", "-vcodec", "mjpeg", "-"],
+                          capture_output=True, timeout=90)
+    if proc.returncode or not proc.stdout:
+        raise RuntimeError(proc.stderr.decode(errors="replace")[-400:])
+    return proc.stdout
+
+
+def animated_filter(segment: dict, file: Path, width: int, height: int) -> str:
+    """Use v360 runtime commands to apply moving camera pose at 5 Hz."""
+    start, end = segment["start"], segment["end"]
+    commands = []
+    for i in range(math.ceil((end - start) * 5) + 1):
+        at = min(end, start + i / 5)
+        pose = camera_at(segment, at)
+        for key, value in (("yaw", pose["yaw"]), ("pitch", pose["pitch"]),
+                           ("h_fov", pose["fov"]), ("v_fov", pose["fov"] * 9 / 16)):
+            commands.append(f"{at-start:.4f} v360@view {key} {value:.4f};")
+    file.write_text("\n".join(commands) + "\n", encoding="utf-8")
+    first = camera_at(segment, start)
+    return (f"fps=30,sendcmd=f='{file}'," + 
+            view_filter(first["yaw"], first["pitch"], first["fov"], name="@view") +
+            f",scale={width}:{height}:force_original_aspect_ratio=decrease," +
+            f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p")
 
 
 def silence_suggestions(source: Path, duration: float, has_audio: bool, noise_db: int = -36, min_seconds: float = 3) -> list[dict]:
@@ -102,7 +133,7 @@ def auto_editor_suggestions(source: Path, duration: float, workspace: Path) -> l
 def render(source: Path, dest: Path, projection: str, segments: list[dict], *, size: str = "720p", has_audio: bool = True, callback=None):
     """Render each kept source range with own camera viewport; concat losslessly.
 
-    This MVP supports static orientation per segment, not moving keyframe tracking.
+    Moving 360 camera trajectories are rendered via FFmpeg v360 commands.
     """
     resolution = {"720p": (1280, 720), "1080p": (1920, 1080)}[size]
     kept = [s for s in segments if s["keep"]]
@@ -114,7 +145,11 @@ def render(source: Path, dest: Path, projection: str, segments: list[dict], *, s
     try:
         for index, seg in enumerate(kept):
             out = work / f"part_{index:05}.mp4"
-            vf = build_filters(projection, seg, width=resolution[0], height=resolution[1])
+            if projection == "equirect" and len(seg.get("keyframes", [])) > 1:
+                vf = animated_filter(seg, work / f"commands_{index:05}.txt", *resolution)
+            else:
+                view = camera_at(seg, seg["start"])
+                vf = build_filters(projection, {**seg, **view}, width=resolution[0], height=resolution[1])
             cmd = ["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-ss", str(seg["start"]),
                    "-i", str(source), "-t", str(round(seg["end"] - seg["start"], 3)),
                    "-map", "0:v:0", "-vf", vf, "-c:v", "libx264", "-preset", "veryfast",
