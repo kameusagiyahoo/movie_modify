@@ -24,3 +24,5 @@ jobs:
           node --check /tmp/movie_modify_ui.js
           node --check web/live_preview.js
           node --check web/responsive_ui.js
+          node --check docs/pages.js
+          node --check docs/live_preview.js
