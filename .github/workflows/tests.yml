@@ -23,3 +23,4 @@ jobs:
           PY
           node --check /tmp/movie_modify_ui.js
           node --check web/live_preview.js
+          node --check web/responsive_ui.js
