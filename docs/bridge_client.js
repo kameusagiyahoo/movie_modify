@@ -10,7 +10,20 @@
   let localFile = null;
   let lastServerSegments = null;
   let busy = false;
-  let statusTimer = 0;
+  const REMEMBER_KEY = "movie-modify-native-project";
+  function remembered() {
+    try { return JSON.parse(sessionStorage.getItem(REMEMBER_KEY) || "null"); }
+    catch (_err) { return null; }
+  }
+  function remember() {
+    const snap=state();
+    if(!snap?.file || !serverProjectId)return;
+    sessionStorage.setItem(REMEMBER_KEY, JSON.stringify({
+      id:serverProjectId, name:snap.file.name, size:snap.file.size,
+      modified:snap.file.lastModified, projection:snap.projection,
+      duration:snap.duration, baseline:lastServerSegments
+    }));
+  }
 
   const editor = () => window.MovieModifyPagesBridge;
   const state = () => editor()?.getState();
@@ -55,6 +68,14 @@
     }
     if(snapshot.file !== localFile) {
       serverProjectId=null;lastServerSegments=null;localFile=snapshot.file;
+      const saved=remembered();
+      if(saved && saved.name===snapshot.file.name && saved.size===snapshot.file.size &&
+        saved.modified===snapshot.file.lastModified &&
+        saved.projection===snapshot.projection &&
+        Math.abs(saved.duration-snapshot.duration)<1) {
+        serverProjectId=saved.id;
+        lastServerSegments=saved.baseline;
+      }
     }
     if(!serverProjectId) {
       const sizeGiB=snapshot.file.size/(1024**3);
@@ -81,6 +102,7 @@
       body:json({segments:snapshot.project.segments})
     });
     lastServerSegments=json(result.segments);
+    remember();
     say("編集内容をPCに同期しました。元動画はPCに保存されています。");
     return serverProjectId;
   }
@@ -102,11 +124,23 @@
   }
   async function pullFromServer() {
     const snapshot=state();
-    if(!serverProjectId||!snapshot?.ready)throw Error("先に動画をPCへ同期してください。");
+    if(!serverProjectId && snapshot?.ready && snapshot.file){
+      const saved=remembered();
+      if(saved && saved.name===snapshot.file.name && saved.size===snapshot.file.size &&
+         saved.modified===snapshot.file.lastModified &&
+         saved.projection===snapshot.projection &&
+         Math.abs(saved.duration-snapshot.duration)<1){
+        serverProjectId=saved.id;
+        lastServerSegments=saved.baseline;
+        localFile=snapshot.file;
+      }
+    }
+    if(!serverProjectId||!snapshot?.ready)throw Error("PC側の編集を読むには、先に同じ元動画を開いてください。");
     if(snapshot.dirty && !confirm("未保存のブラウザ編集をPC側の内容で上書きしますか？"))return;
     const project=await api("/api/projects/"+serverProjectId);
     editor().applyProject(project);
     lastServerSegments=json(project.segments);
+    remember();
     say("PC側の画角・カット編集を読み込みました。");
   }
   function targetFromInput() {
