@@ -68,7 +68,7 @@ test('iPhone-width Pages: editor tool selection and history accessible', async (
 test('local native: revision conflict refuses stale browser write', async ({page, request})=>{
   const upload=await request.post(LOCAL+'api/projects',{
     multipart:{
-      file:{name:'fixture.mp4',mimeType:'video/webm',buffer:fs.readFileSync(fixture)},
+      file:{name:'fixture.webm',mimeType:'video/webm',buffer:fs.readFileSync(fixture)},
       projection:'flat',
     }
   });
