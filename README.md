@@ -107,3 +107,40 @@ It helps Codex revise Japanese documentation, UI instructions and PR text.
 Use `/yomiyasu` or `$yomiyasu:yomiyasu` from Codex. This is **not**
 a video editor, subtitle engine, or AI inference component; it never runs
 in the Movie Modify media backend. See [the guide](docs/yomiyasu.md).
+
+
+## Continuous in-editor 360° preview
+
+The editor can now **play the selected 16:9 direction continuously** while a
+360° source video is playing. It uses a same-origin H.264 **2:1 panoramic
+proxy** and a dependency-free WebGL renderer in the browser:
+
+- Select a **stitched equirectangular 360° MP4/MOV**. Normal phone videos keep
+  their existing native video player.
+- For a 360° project, press **再生** above the timeline. The preview follows the
+  existing person's generated keyframes and pans to manually selected scenic
+  angles at the right times. Scrub with the playback slider to inspect changes.
+- **カット区間を飛ばす** is enabled by default while playing. Uncheck it if you
+  want to review all source frames including cut sections.
+- Manual scenery keyframes and local OpenCV tracking remain independent and
+  editable. The browser viewer reads exactly the current unsaved segment data;
+  no new MP4 export is required just to review a different view angle.
+- If WebGL is unavailable, the original 2:1 low-resolution proxy can still be
+  played, and the existing single-frame preview remains available.
+
+On initial import of a **new 360° project**, one background transcoding job
+creates \`data/<id>/proxy360.mp4\` at 1280×640 and 24 fps. Older projects
+without a panoramic proxy generate one on demand upon opening in the editor.
+The backend reuses an in-progress import job instead of encoding twice. The
+source remains untouched.
+
+**Privacy:** No cloud API or external video hosting is used. The proxy video
+is streamed between your own server and its browser client. For viewing over
+a local Wi-Fi network, protect access with \`MOVIE_MODIFY_TOKEN\`; use HTTPS
+if other people can inspect your LAN traffic.
+
+**Limitations:** The preview's low-resolution WebGL projection approximates
+the FFmpeg high-quality final render; minor differences are possible.
+Browser decoding and WebGL performance vary, especially with older iPhones.
+Source audio follows the selected time; there is no crossfade at cut points.
+Trackers may drift when a person is obstructed, so inspect those intervals.
