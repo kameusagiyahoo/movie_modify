@@ -80,7 +80,7 @@ body{overscroll-behavior-y:contain}
  .viewer-panel #framePreview{max-height:180px}
  .viewer-panel #framePreview:not(.show){display:none}
  .viewer-panel #frameButton{font-size:11px}
- .mobile-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;order:2;position:sticky;top:calc(min(43vw,320px) + 76px);z-index:8;background:#0b1420;padding:8px 0}
+ .mobile-tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;order:2;position:relative;z-index:8;background:#0b1420;padding:8px 0}
  .mobile-tabs button{min-height:var(--tap);font-size:12px;padding:8px 4px;border-radius:10px;font-weight:650}
  .mobile-tabs button[aria-selected=true]{color:#082b26;background:var(--mint);border-color:var(--mint)}
  .timeline-panel{order:3}
