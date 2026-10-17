@@ -109,6 +109,11 @@ def studio_webgl():
     return FileResponse(ROOT / "docs" / "live_preview.js", media_type="text/javascript")
 
 
+@app.get("/studio/edit_history.js")
+def studio_edit_history():
+    return FileResponse(ROOT / "docs" / "edit_history.js", media_type="text/javascript")
+
+
 @app.get("/studio/bridge_client.js")
 def studio_bridge():
     return FileResponse(ROOT / "docs" / "bridge_client.js", media_type="text/javascript")
@@ -122,6 +127,11 @@ def adaptive_editor_css():
 @app.get("/assets/responsive_ui.js")
 def adaptive_editor_js():
     return FileResponse(ROOT / "web" / "responsive_ui.js", media_type="text/javascript")
+
+
+@app.get("/assets/edit_history.js")
+def advanced_edit_history():
+    return FileResponse(ROOT / "docs" / "edit_history.js", media_type="text/javascript")
 
 
 @app.get("/assets/live_preview.js")
