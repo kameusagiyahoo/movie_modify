@@ -13,6 +13,7 @@
   let loaded = false, dirty = false, draft = null, pendingProject = null;
   let recordBusy = false, exportingURL = null, toastTimer;
   let lastUiTick = 0;
+  let editHistory = null;
 
   const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
   const wrap = v => ((v + 180) % 360 + 360) % 360 - 180;
@@ -59,6 +60,77 @@
     }).sort((a,b) => a.time-b.time);
     return clean;
   }
+
+  // Timeline snapshots are identical on Pages and Studio. They contain edit
+  // instructions only, never File / Blob objects or source video bytes.
+  function editorSnapshot() {
+    return {segments:segments.map(s=>({...s,keyframes:(s.keyframes||[]).map(k=>({...k}))})),
+      selected, time:video.currentTime||0};
+  }
+  function validateSnapshot(snapshot) {
+    if(!snapshot||!Array.isArray(snapshot.segments)||!snapshot.segments.length||
+       snapshot.segments.length>5000)throw Error('復元する編集データが不正です');
+    let end=0;
+    const list=snapshot.segments.map(item=>{
+      const seg=validateSegment(item,end);end=seg.end;return seg;
+    });
+    return {segments:list,selected:clamp(Number(snapshot.selected)||0,0,list.length-1),
+      time:clamp(Number(snapshot.time)||0,0,Math.max(0,duration-.01))};
+  }
+  function setHistoryStatus(state) {
+    $('editUndo').disabled=!state.canUndo||recordBusy;
+    $('editRedo').disabled=!state.canRedo||recordBusy;
+    $('editUndo').title=state.canUndo?'元に戻す：'+state.undoLabel:'元に戻せる操作はありません';
+    $('editRedo').title=state.canRedo?'やり直す：'+state.redoLabel:'やり直せる操作はありません';
+    const label=$('editSafety');
+    if(state.error){label.textContent=state.error;label.classList.add('error');}
+    else {label.classList.remove('error');
+      label.textContent='編集内容を端末内に自動保存中（元動画は保存されません）';}
+  }
+  function checkpoint(label) {
+    if(!loaded||!editHistory)return;
+    dirty=true;
+    editHistory.checkpoint(editorSnapshot(),label);
+  }
+  function applySnapshot(snapshot) {
+    const safe=validateSnapshot(snapshot);
+    segments=safe.segments;selected=safe.selected;draft=null;
+    video.currentTime=safe.time;
+    renderTimeline();showSegment();updatePlayback(safe.time);
+  }
+  function undoEdit() {
+    if(!loaded||recordBusy||!editHistory)return;
+    const before=editHistory.undo();
+    if(before){applySnapshot(before);dirty=true;notify('直前の編集を戻しました');}
+  }
+  function redoEdit() {
+    if(!loaded||recordBusy||!editHistory)return;
+    const after=editHistory.redo();
+    if(after){applySnapshot(after);dirty=true;notify('編集をやり直しました');}
+  }
+  function initializeHistory(skipRestore=false) {
+    const identity={name:file.name,size:file.size,modified:file.lastModified,
+      projection,duration,width:video.videoWidth,height:video.videoHeight};
+    const key='browser:'+MovieModifyEditHistory.hash(identity);
+    editHistory=new MovieModifyEditHistory.EditHistory({
+      key,identity,initial:editorSnapshot(),onUpdate:setHistoryStatus
+    });
+    if(skipRestore)return;
+    const candidate=editHistory.candidate();
+    if(candidate.status==='available') {
+      const date=new Date(candidate.savedAt).toLocaleString('ja-JP');
+      if(confirm('この動画の編集下書き（'+date+'）があります。復元しますか？\n元動画は保存されていないため、現在選択した素材を使用します。')){
+        try{
+          const restored=editHistory.restore(candidate.snapshot,validateSnapshot);
+          applySnapshot(restored);dirty=true;
+          notify('自動保存された編集を復元しました。');
+        }catch(error){notify('下書きを検証できません：'+error.message,true);}
+      }
+    } else if(candidate.status==='invalid'||candidate.status==='conflict') {
+      notify('以前の下書きは現在の動画に安全に適用できないため、復元しませんでした。',true);
+    }
+  }
+
   function cameraAt(segment,t) {
     if (!segment) return {yaw:0,pitch:0,fov:90};
     const keys = segment.keyframes || [];
@@ -131,6 +203,8 @@
         surface.classList.replace('equirect','flat');
       }
     }
+    const suppliedProject=!!pendingProject;
+    initializeHistory(suppliedProject);
     if (pendingProject) {
       const data = pendingProject;pendingProject=null;
       try{applyProject(data);}catch(err){notify(err.message,true);}
@@ -142,6 +216,7 @@
   }
   function syncControls() {
     const on = loaded && !recordBusy;
+    if(editHistory)setHistoryStatus(editHistory.state());
     for(const id of ['playPause','seek','split','toggleKeep','saveJson','saveJsonBottom','exportVideo']) $(id).disabled=!on;
     $('scenery').disabled=!on || projection!=='equirect';
     for(const id of ['yaw','pitch','fov','setKey','resetView']) $(id).disabled=!on || projection!=='equirect';
@@ -246,12 +321,12 @@
     const t=video.currentTime,i=segments.findIndex(s=>t>s.start+.06&&t<s.end-.06);
     if(i<0){notify('区間の内部に再生位置を移動してください。',true);return;}
     const s=segments[i];segments.splice(i,1,sliceSegment(s,s.start,t),sliceSegment(s,t,s.end));
-    selected=i+1;dirty=true;draft=null;renderTimeline();showSegment();notify('再生位置で区間を分割しました。');
+    selected=i+1;draft=null;checkpoint('分割');renderTimeline();showSegment();notify('再生位置で区間を分割しました。');
   }
   function toggleCut() {
     if(!loaded||recordBusy)return;
     segments[selected].keep=!segments[selected].keep;
-    dirty=true;renderTimeline();showSegment();
+    checkpoint('残す／カット');renderTimeline();showSegment();
   }
   function selectScenery() {
     if(!loaded||projection!=='equirect'||recordBusy)return;
@@ -261,7 +336,7 @@
     else if(findIndex(t)>=0) selected=findIndex(t);
     const seg=segments[selected],p=cameraAt(seg,t);
     Object.assign(seg,{yaw:p.yaw,pitch:p.pitch,fov:p.fov,mode:'manual',keyframes:[]});
-    draft=null;dirty=true;renderTimeline();showSegment();switchTab('camera');
+    draft=null;checkpoint('景色に切り替え');renderTimeline();showSegment();switchTab('camera');
     notify('景色の方向をスライダーで指定し、「画角キー追加」を押してください。');
   }
   function updateDraft() {
@@ -281,15 +356,16 @@
     seg.keyframes=seg.keyframes.filter(k=>Math.abs(k.time-time)>.004);
     seg.keyframes.push({time,yaw:pose.yaw,pitch:pose.pitch,fov:pose.fov});
     seg.keyframes.sort((a,b)=>a.time-b.time);
-    draft=null;dirty=true;renderTimeline();showSegment();notify('画角キーフレームを追加しました。');
+    draft=null;checkpoint('画角キー追加');renderTimeline();showSegment();notify('画角キーフレームを追加しました。');
   }
   function resetAngle() {
     if(!loaded||projection!=='equirect')return;
     Object.assign(segments[selected],{yaw:0,pitch:0,fov:90,keyframes:[],mode:'manual'});
-    draft=null;dirty=true;renderTimeline();showSegment();
+    draft=null;checkpoint('画角をリセット');renderTimeline();showSegment();
   }
   function projectJson() {
     return {schema:'movie-modify-pages/v1',name:file?.name||'video',projection,duration,
+      source:{name:file?.name||'',size:file?.size||0,modified:file?.lastModified||0,width:video.videoWidth,height:video.videoHeight},
       segments:segments.map(s=>({...s,keyframes:s.keyframes.map(k=>({...k}))}))};
   }
   function saveJson() {
@@ -302,11 +378,19 @@
     const list=data?.segments;
     if(!Array.isArray(list)||list.length<1||list.length>5000)throw Error('有効なsegmentsがありません');
     if(data.projection && data.projection!==projection) throw Error('編集JSONと読み込んだ動画の形式が異なります');
+    if(data.name && data.name!==file.name) throw Error('動画名が違います。対応する元動画を選択してください。');
+    if(data.source &&
+      (data.source.name!==file.name||Number(data.source.size)!==file.size||
+       Number(data.source.modified)!==file.lastModified||
+       Number(data.source.width)!==video.videoWidth||
+       Number(data.source.height)!==video.videoHeight))
+      throw Error('元動画のサイズ・更新日時・解像度が一致しません。');
     if(Number.isFinite(Number(data.duration)) && Math.abs(Number(data.duration)-duration)>1)
       throw Error('動画の長さが一致しません。同じ素材を読み込んでください。');
     let end=0;
     const parsed=list.map(s=>{const value=validateSegment(s,end);end=value.end;return value;});
     segments=parsed;selected=0;draft=null;dirty=false;
+    checkpoint('JSON読込');
     renderTimeline();showSegment();notify(`${parsed.length}区間の編集情報を読み込みました。`);
   }
   function selectMime() {
@@ -444,6 +528,7 @@
     };
     $('seek').oninput=e=>{if(loaded&&!recordBusy){draft=null;video.currentTime=Number(e.target.value);updatePlayback(video.currentTime);showSegment();}};
     $('split').onclick=splitAt;$('toggleKeep').onclick=toggleCut;$('scenery').onclick=selectScenery;
+    $('editUndo').onclick=undoEdit;$('editRedo').onclick=redoEdit;
     for(const id of ['yaw','pitch','fov']) $(id).oninput=updateDraft;
     $('setKey').onclick=addKey;$('resetView').onclick=resetAngle;
     $('zoomOut').onclick=()=>resizeZoom(zoom/2);$('zoomIn').onclick=()=>resizeZoom(zoom*2);
@@ -462,7 +547,14 @@
       if(b.dataset.action==='save')saveJson();
     });
     document.addEventListener('keydown',e=>{
-      if(!loaded||e.target.closest('input,button,select,textarea')||e.metaKey||e.ctrlKey||e.altKey)return;
+      const typing=e.target.closest('input,button,select,textarea,[contenteditable]');
+      if(loaded&&!typing&&(e.metaKey||e.ctrlKey)&&!e.altKey&&e.code==='KeyZ'){
+        e.preventDefault();if(e.shiftKey)redoEdit();else undoEdit();return;
+      }
+      if(loaded&&!typing&&(e.metaKey||e.ctrlKey)&&!e.altKey&&e.code==='KeyY'){
+        e.preventDefault();redoEdit();return;
+      }
+      if(!loaded||typing||e.metaKey||e.ctrlKey||e.altKey)return;
       if(e.code==='Space'){e.preventDefault();$('playPause').click();}
       if(e.code==='KeyS'){e.preventDefault();splitAt();}
       if(e.code==='ArrowLeft'||e.code==='ArrowRight'){
