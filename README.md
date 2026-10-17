@@ -13,6 +13,32 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## GitHub Pages → local PC handoff (Windows / Linux)
+
+The same browser editor can now be opened from the local processing server:
+
+- **Static Pages editor:** https://kameusagiyahoo.github.io/movie_modify/
+- **Local connected studio:** http://127.0.0.1:8000/studio/
+- **Advanced local editor:** http://127.0.0.1:8000/
+
+After running the Windows or Linux launcher, choose **PCの高機能エンジン**
+in the Pages editor. Save your edit JSON, navigate to the local studio
+(on iPhone, replace 127.0.0.1 with your PC's private LAN IP), then reselect
+the source movie and edit JSON. In the local studio, an explicit confirmation
+allows the user to **upload the selected video to their own PC** once and
+synchronize the EDL, render with FFmpeg, or open the advanced UI for OpenCV
+tracking and automatic cut suggestions.
+
+This uses **navigation rather than cross-origin fetch**: GitHub Pages HTTPS
+cannot reliably call private-network HTTP APIs due to mixed-content /
+private-network browser restrictions. The native studio serves the same HTML
+and JS from FastAPI at one origin, avoiding CORS exemptions and hardcoded
+API credentials. There is no automatic media upload from public Pages.
+Local Wi-Fi HTTP remains unencrypted; use a private HTTPS tunnel or trusted
+VPN if confidentiality is required.
+
+See [the connection and safety guide](docs/bridge-workflow.md).
+
 ## Run locally on Windows **or** Linux
 
 The same FastAPI/FFmpeg/OpenCV backend and responsive browser UI run on both
