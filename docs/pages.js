@@ -401,13 +401,17 @@
     const list=data?.segments;
     if(!Array.isArray(list)||list.length<1||list.length>5000)throw Error('有効なsegmentsがありません');
     if(data.projection && data.projection!==projection) throw Error('編集JSONと読み込んだ動画の形式が異なります');
-    if(data.name && data.name!==file.name) throw Error('動画名が違います。対応する元動画を選択してください。');
-    if(data.source &&
-      (data.source.name!==file.name||Number(data.source.size)!==file.size||
+    // Imported JSON may travel from iPhone to Windows/Linux, where its
+    // lastModified timestamp (and sometimes filename) can legitimately change.
+    // Never silently apply to a different file; ask the user explicitly.
+    const mismatch=(data.name&&data.name!==file.name) ||
+      (data.source&&(data.source.name!==file.name||
+       Number(data.source.size)!==file.size||
        Number(data.source.modified)!==file.lastModified||
        Number(data.source.width)!==video.videoWidth||
-       Number(data.source.height)!==video.videoHeight))
-      throw Error('元動画のサイズ・更新日時・解像度が一致しません。');
+       Number(data.source.height)!==video.videoHeight));
+    if(mismatch && !confirm('編集JSONと元動画の名前・サイズ・更新日時・解像度のいずれかが一致しません。\\n別の動画への誤適用を避けるため確認してください。\\nこの動画が正しい元素材であることを確認して読込みますか？'))
+      throw Error('元動画が一致しないためJSON読込みをキャンセルしました。');
     if(Number.isFinite(Number(data.duration)) && Math.abs(Number(data.duration)-duration)>1)
       throw Error('動画の長さが一致しません。同じ素材を読み込んでください。');
     let end=0;
