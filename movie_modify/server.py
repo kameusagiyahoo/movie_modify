@@ -23,6 +23,7 @@ from .core import apply_suggestions, fresh_segment, normalize_segments
 from .media import (auto_editor_suggestions, available, create_proxy, inspect_video,
                     panorama_frame, preview_frame, render, silence_suggestions, create_panorama_proxy)
 from .tracking import track_panorama
+from .uploads import UploadStore, UploadIssue, MAX_CHUNK_BYTES
 
 ROOT = Path(__file__).resolve().parent.parent
 STORAGE = Path(os.environ.get("MOVIE_MODIFY_DATA", str(ROOT / "data"))).expanduser().resolve()
@@ -36,6 +37,7 @@ PREVIEW_JOBS: dict[str, str] = {}
 JOB_LOCK = threading.Lock()
 # Serializes read→check→write for every project mutation, including background jobs.
 PROJECT_LOCK = threading.RLock()
+UPLOADS = UploadStore(STORAGE)
 app = FastAPI(title="Movie Modify", docs_url=None, redoc_url=None)
 
 
@@ -65,6 +67,13 @@ class TrackPayload(BaseModel):
     y: float
     box: float = 0.10
     expected_revision: int
+
+
+class UploadStartPayload(BaseModel):
+    filename: str
+    size: int
+    projection: str = "flat"
+    last_modified: int = 0
 
 
 class LoginPayload(BaseModel):
@@ -251,6 +260,96 @@ def projects():
         except (KeyError, ValueError, OSError):
             pass
     return sorted(items, key=lambda x: x["id"], reverse=True)
+
+
+@app.exception_handler(UploadIssue)
+async def upload_issue_handler(_request: Request, issue: UploadIssue):
+    return JSONResponse(status_code=issue.status, content={"detail": {
+        "code": issue.code, "message": str(issue), **issue.metadata
+    }})
+
+
+@app.post("/api/uploads")
+def create_resumable_upload(payload: UploadStartPayload):
+    if not available("ffprobe") or not available("ffmpeg"):
+        raise HTTPException(503, "Install ffmpeg and ffprobe")
+    return UPLOADS.create(payload.filename, payload.size, payload.projection,
+                          payload.last_modified)
+
+
+@app.get("/api/uploads/{session_id}")
+def get_resumable_upload(session_id: str):
+    return UPLOADS.status(session_id)
+
+
+@app.put("/api/uploads/{session_id}/chunk")
+async def receive_video_chunk(session_id: str, request: Request, offset: int):
+    data = bytearray()
+    async for piece in request.stream():
+        data.extend(piece)
+        if len(data) > MAX_CHUNK_BYTES:
+            raise HTTPException(413, "Upload chunk exceeds 8 MiB")
+    return UPLOADS.append(session_id, offset, bytes(data))
+
+
+@app.delete("/api/uploads/{session_id}")
+def cancel_resumable_upload(session_id: str):
+    # Do not delete the original video of a completed project.
+    with UPLOADS.lock:
+        meta = UPLOADS.status(session_id)
+        if meta["completed"]:
+            raise HTTPException(409, "Completed upload cannot be deleted")
+        shutil.rmtree(UPLOADS._dir(session_id))
+    return {"ok": True}
+
+
+@app.post("/api/uploads/{session_id}/complete")
+def complete_resumable_upload(session_id: str):
+    # The session lock makes duplicate commit attempts idempotent.
+    with UPLOADS.lock:
+        meta = UPLOADS.status(session_id)
+        if meta["completed"]:
+            project = _project(meta["project_id"])
+            return {"project": project, "job_id": meta["job_id"],
+                    "completed": True}
+        meta, part = UPLOADS.ready_source(session_id)
+        metadata = inspect_video(part)
+        if meta["projection"] == "equirect" and metadata["width"] / max(metadata["height"], 1) < 1.7:
+            raise HTTPException(400, "360 footage must be stitched to equirectangular format")
+        project_id = uuid.uuid4().hex
+        directory = STORAGE / project_id
+        directory.mkdir(mode=0o700)
+        suffix = Path(meta["filename"]).suffix.lower()
+        source = directory / ("original" + suffix)
+        try:
+            shutil.move(str(part), str(source))
+            project = dict(
+                id=project_id, name=meta["filename"],
+                projection=meta["projection"], source_name=source.name,
+                proxy_ready=False, suggestions=[], edit_revision=0,
+                segments=[fresh_segment(0, metadata["duration"])], **metadata
+            )
+            _save(project)
+        except Exception:
+            shutil.rmtree(directory, ignore_errors=True)
+            raise
+
+        def make_proxy(update):
+            if meta["projection"] == "equirect":
+                create_panorama_proxy(source, directory / "proxy360.mp4")
+            else:
+                create_proxy(source, directory / "proxy.mp4", meta["projection"])
+            with PROJECT_LOCK:
+                latest = _project(project_id)
+                latest["proxy_ready"] = True
+                _save(latest)
+
+        task = _job(make_proxy)
+        if meta["projection"] == "equirect":
+            with JOB_LOCK:
+                PREVIEW_JOBS[project_id] = task["job_id"]
+        UPLOADS.mark_complete(session_id, project_id, task["job_id"])
+        return {"project": project, **task, "completed": True}
 
 
 @app.post("/api/projects")
