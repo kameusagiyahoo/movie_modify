@@ -3,7 +3,7 @@
 > **正式な仕様の参照先（Single Source of Truth）**  
 > 文書 ID: MM-SPEC-001 ／ 版: **1.0** ／ 更新日: **2026-10-17**  
 > 対象リポジトリ: [kameusagiyahoo/movie_modify](https://github.com/kameusagiyahoo/movie_modify)  
-> 初回作成時の実装確認基準: \`main@ba7160d8138e5985be2b89ea1873450320aec14e\`  
+> 初回作成時の実装確認基準: `main@ba7160d8138e5985be2b89ea1873450320aec14e`  
 > 本文の状態表示は、上記時点の**リポジトリに実際に存在するコード**を基準とする。将来の構想や未検証事項は区別して記載する。
 
 **この文書に集約するもの：** 目的・要求・機能一覧・ユーザー操作・UI/UX・アーキテクチャ・編集JSON・API・Windows/Linux/iPhone/Pages運用・プライバシー・テスト・ロードマップ。日常の開発では**本書を正本**とし、README・個別運用手順は補助資料とする。
@@ -53,14 +53,14 @@
 | モード | アクセス先 | 起動条件 | 主な操作 | 重い処理 |
 |---|---|---|---|---|
 | A. **GitHub Pages 単独** | [公開Webアプリ](https://kameusagiyahoo.github.io/movie_modify/) | インターネット／対応ブラウザ | 動画読込、カット・画角編集、WebGLプレビュー、JSON保存 | **使わない**。ブラウザ内の試験出力のみ |
-| B. **ローカルStudio** | \`http://127.0.0.1:8000/studio/\` | Windows/Linux上でサーバー起動 | Aと同じUI、元動画のPC同期、FFmpeg出力、詳細画面への移動 | ローカルPC |
-| C. **ローカル詳細エディター** | \`http://127.0.0.1:8000/\` | 同上 | 360度人物追尾、静音・Auto-Editor解析、全景タップ、詳細編集、出力 | ローカルPC |
+| B. **ローカルStudio** | `http://127.0.0.1:8000/studio/` | Windows/Linux上でサーバー起動 | Aと同じUI、元動画のPC同期、FFmpeg出力、詳細画面への移動 | ローカルPC |
+| C. **ローカル詳細エディター** | `http://127.0.0.1:8000/` | 同上 | 360度人物追尾、静音・Auto-Editor解析、全景タップ、詳細編集、出力 | ローカルPC |
 
-iPhoneがPCの処理を使う場合は、PCを \`--lan\` で起動して \`http://<PCのLAN IP>:8000/studio/\` などに接続する。同一LANが基本であり、外出先からのアクセスは別途安全なVPN等が必要。
+iPhoneがPCの処理を使う場合は、PCを `--lan` で起動して `http://<PCのLAN IP>:8000/studio/` などに接続する。同一LANが基本であり、外出先からのアクセスは別途安全なVPN等が必要。
 
 **区別すべき点**：
 
-- Pagesの元動画は、ブラウザで \`File\` / \`blob:\` として開く。**編集開始だけではPCにもクラウドにもアップロードしない**。
+- Pagesの元動画は、ブラウザで `File` / `blob:` として開く。**編集開始だけではPCにもクラウドにもアップロードしない**。
 - Pagesからローカルに移るときは、**編集JSONを保存 → ローカルStudioに移動 → 動画とJSONを再選択**する。ページ移動だけで元動画データは引き継がれない。
 - Studioで利用者が「同期」を押し確認した場合は、**iPhoneとPC間で元動画がローカルPCへ転送される**。GitHub Pagesを経由する転送ではない。
 - 完全自動のPages→PC接続、ファイルを選び直さずに移動する機能は**未実装**。
@@ -69,7 +69,7 @@ iPhoneがPCの処理を使う場合は、PCを \`--lan\` で起動して \`http:
 
 ### 3.1 実行環境とデータ境界
 
-\`\`\`mermaid
+```mermaid
 flowchart TB
     subgraph Browser["iPhone Safari / Windows・Linuxブラウザ"]
       UI["共通の編集UI"]
@@ -103,13 +103,13 @@ flowchart TB
     EDL -- "手動JSON保存／再読込" --> STUDIO
     VIDEO -- "利用者の明示的な同期後のみ" --> API
     STUDIO -- "同一オリジンで配信" --> UI
-\`\`\`
+```
 
-**注意：** 図のJSON引継ぎ矢印はファイル保存／読込の操作であり、Pages HTTPSからプライベートHTTP APIを直接呼ぶネットワーク通信ではない。ブラウザの混在コンテンツ／プライベートネットワーク制限を回避するため、ローカル版も \`/studio/\` に同じUIを配信する。
+**注意：** 図のJSON引継ぎ矢印はファイル保存／読込の操作であり、Pages HTTPSからプライベートHTTP APIを直接呼ぶネットワーク通信ではない。ブラウザの混在コンテンツ／プライベートネットワーク制限を回避するため、ローカル版も `/studio/` に同じUIを配信する。
 
 ### 3.2 編集処理と依存関係
 
-\`\`\`mermaid
+```mermaid
 flowchart LR
     SRC["スマホ動画 / スティッチ済み360°"] --> INGEST["メディア検査・入力"]
     INGEST --> PROXY["プレビュー用プロキシ"]
@@ -121,22 +121,22 @@ flowchart LR
     EDIT --> PREV["ブラウザ連続プレビュー"]
     EDIT --> RENDER["FFmpeg再エンコード＋結合"]
     RENDER --> MP4["完成MP4"]
-\`\`\`
+```
 
 ### 3.3 モジュール境界
 
 | 層 | ファイル | 責務 |
 |---|---|---|
-| 編集データ／幾何 | [\`movie_modify/core.py\`](../movie_modify/core.py) | 区間の検証、分割、カット提案適用、yaw補間 |
-| メディア処理 | [\`movie_modify/media.py\`](../movie_modify/media.py) | FFprobe、プロキシ、静音検出、Auto-Editor、FFmpegレンダー |
-| 追尾 | [\`movie_modify/tracking.py\`](../movie_modify/tracking.py) | 360度パノラマのOpenCV外観追尾、キーフレーム生成 |
-| サーバー | [\`movie_modify/server.py\`](../movie_modify/server.py) | プロジェクト・API・アップロード・ジョブ・認証 |
-| 共通CLI | [\`movie_modify/__main__.py\`](../movie_modify/__main__.py) | Windows/Linux起動、LAN制限、データディレクトリ |
-| 詳細UI | [\`web/index.html\`](../web/index.html)、[\`responsive_ui.js\`](../web/responsive_ui.js) | 追尾・解析・レンダリング操作 |
-| 共通Studio/Pages UI | [\`docs/index.html\`](index.html)、[\`pages.js\`](pages.js) | ブラウザ編集、JSON、試験出力 |
-| ブラウザ画角描画 | [\`docs/live_preview.js\`](live_preview.js)、[\`web/live_preview.js\`](../web/live_preview.js) | WebGLによる正距円筒図法→16:9 |
-| PC接続補助 | [\`docs/bridge_client.js\`](bridge_client.js) | JSON引継ぎ、Studio同一オリジン同期、PC出力 |
-| 開発文章支援 | [\`.agents/skills/yomiyasu/\`](../.agents/skills/yomiyasu/SKILL.md) | 日本語文書推敲のAgent Skill。動画実行には**関与しない** |
+| 編集データ／幾何 | [`movie_modify/core.py`](../movie_modify/core.py) | 区間の検証、分割、カット提案適用、yaw補間 |
+| メディア処理 | [`movie_modify/media.py`](../movie_modify/media.py) | FFprobe、プロキシ、静音検出、Auto-Editor、FFmpegレンダー |
+| 追尾 | [`movie_modify/tracking.py`](../movie_modify/tracking.py) | 360度パノラマのOpenCV外観追尾、キーフレーム生成 |
+| サーバー | [`movie_modify/server.py`](../movie_modify/server.py) | プロジェクト・API・アップロード・ジョブ・認証 |
+| 共通CLI | [`movie_modify/__main__.py`](../movie_modify/__main__.py) | Windows/Linux起動、LAN制限、データディレクトリ |
+| 詳細UI | [`web/index.html`](../web/index.html)、[`responsive_ui.js`](../web/responsive_ui.js) | 追尾・解析・レンダリング操作 |
+| 共通Studio/Pages UI | [`docs/index.html`](index.html)、[`pages.js`](pages.js) | ブラウザ編集、JSON、試験出力 |
+| ブラウザ画角描画 | [`docs/live_preview.js`](live_preview.js)、[`web/live_preview.js`](../web/live_preview.js) | WebGLによる正距円筒図法→16:9 |
+| PC接続補助 | [`docs/bridge_client.js`](bridge_client.js) | JSON引継ぎ、Studio同一オリジン同期、PC出力 |
+| 開発文章支援 | [`.agents/skills/yomiyasu/`](../.agents/skills/yomiyasu/SKILL.md) | 日本語文書推敲のAgent Skill。動画実行には**関与しない** |
 
 ## 4. 機能要求・実装ステータス
 
@@ -182,7 +182,7 @@ flowchart LR
 
 ### 5.2 iPhone／狭い画面
 
-\`\`\`text
+```text
 ┌──────────────────────────┐
 │  動画プレビュー（上部）  │
 │  再生・シーク・時刻      │
@@ -193,7 +193,7 @@ flowchart LR
 ├──────────────────────────┤
 │ 分割 │カット│景色│JSON保存│  ← 下部クイック操作
 └──────────────────────────┘
-\`\`\`
+```
 
 - Pages/Studio：タブは**タイムライン／画角／保存・出力**。詳細UIでは**タイムライン／自動カット／書き出す**。
 - 動画を上部に表示し、重要操作を下部タップ領域へ寄せる。2本指の拡大・縮小、横スワイプに対応。
@@ -202,13 +202,13 @@ flowchart LR
 
 ### 5.3 PC／広い画面
 
-\`\`\`text
+```text
 ┌───────────┬─────────────────────────┬─────────────────┐
 │素材・履歴 │  大きな動画プレビュー    │ 画角・解析・出力 │
 │プロジェクト├─────────────────────────┤                 │
 │           │ タイムライン・分割・編集│  詳細設定        │
 └───────────┴─────────────────────────┴─────────────────┘
-\`\`\`
+```
 
 - 大きなプレビュー、タイムライン、詳細ツールを同時に参照できる。
 - PCの詳細エディターでは **Space：再生／停止、S：分割、←／→：5秒移動**（入力欄での操作中を除く）。
@@ -235,7 +235,7 @@ flowchart LR
 
 ### 6.2 Pages編集をWindows／Linuxで仕上げる
 
-\`\`\`mermaid
+```mermaid
 sequenceDiagram
     actor U as 利用者
     participant P as Pages HTTPS
@@ -256,7 +256,7 @@ sequenceDiagram
     B->>F: FFmpegで映像生成
     F-->>B: export.mp4
     B-->>S: 動画をダウンロード
-\`\`\`
+```
 
 **同期の意味：** Pagesサーバーに元動画をアップロードするのではなく、開いているiPhone/PCから**利用者のローカルPCのサーバーへファイルを転送する**。HTTP利用時はLAN内通信が暗号化されないため、ネットワークの信頼性を確認すること。
 
@@ -277,17 +277,17 @@ sequenceDiagram
 ### 7.1 原則
 
 - 編集時刻はすべて**元動画の先頭からの秒数**。カット後の出力タイムラインに対する秒数ではない。
-- \`segments\` は開始順に並び、**区間は重ならない**。連続していない隙間は、出力に含めない暗黙のカットとなる。
-- \`keep=false\` は出力から除外するフラグであり、元動画の削除ではない。
-- \`mode=manual\` は景色／手動指定、\`mode=follow\` は追尾由来のキーフレーム区間。
-- \`keyframes\` があれば、再生時に隣接キー間を補間する。yawは360度境界を跨ぐとき**最短回転方向**で補間。
-- PagesのJSONには \`schema\`、\`name\`、\`projection\`、\`duration\` が付く。PCサーバーの \`project.json\` はID・素材メタ情報等も保持する。**共通互換単位は \`segments\` 配列**。
+- `segments` は開始順に並び、**区間は重ならない**。連続していない隙間は、出力に含めない暗黙のカットとなる。
+- `keep=false` は出力から除外するフラグであり、元動画の削除ではない。
+- `mode=manual` は景色／手動指定、`mode=follow` は追尾由来のキーフレーム区間。
+- `keyframes` があれば、再生時に隣接キー間を補間する。yawは360度境界を跨ぐとき**最短回転方向**で補間。
+- PagesのJSONには `schema`、`name`、`projection`、`duration` が付く。PCサーバーの `project.json` はID・素材メタ情報等も保持する。**共通互換単位は `segments` 配列**。
 
 ### 7.2 JSONの代表例
 
 以下は30秒の360度動画を「人物追尾10秒→景色10秒→最後の10秒カット」に設定した例。
 
-\`\`\`json
+```json
 {
   "schema": "movie-modify-pages/v1",
   "name": "family_360.mp4",
@@ -312,41 +312,41 @@ sequenceDiagram
     }
   ]
 }
-\`\`\`
+```
 
 ### 7.3 制約・検証規則（バックエンド）
 
 | フィールド | 型 | ルール |
 |---|---|---|
-| \`start\`, \`end\` | 数値 | 秒。非負、動画時間内、区間の長さは**0.04秒以上** |
-| \`keep\` | 真偽値 | \`true\`＝残す、\`false\`＝出力しない |
-| \`mode\` | 文字列 | \`manual\` または \`follow\` |
-| \`yaw\` | 数値（度） | -180～180 |
-| \`pitch\` | 数値（度） | -90～90 |
-| \`fov\` | 数値（度） | 35～140 |
-| \`keyframes\` | 配列 | キーは \`time,yaw,pitch,fov\`。厳密な時間昇順・区間内、最大18,000件/区間 |
-| \`segments\` | 配列 | 最低1区間、最大5,000区間、重複なし |
-| \`tracking_warning\` | 文字列 | 追尾の不安定性など（最大250文字に切詰め） |
-| \`suggested\` | 真偽値 | 自動カット候補から派生したかどうか |
+| `start`, `end` | 数値 | 秒。非負、動画時間内、区間の長さは**0.04秒以上** |
+| `keep` | 真偽値 | `true`＝残す、`false`＝出力しない |
+| `mode` | 文字列 | `manual` または `follow` |
+| `yaw` | 数値（度） | -180～180 |
+| `pitch` | 数値（度） | -90～90 |
+| `fov` | 数値（度） | 35～140 |
+| `keyframes` | 配列 | キーは `time,yaw,pitch,fov`。厳密な時間昇順・区間内、最大18,000件/区間 |
+| `segments` | 配列 | 最低1区間、最大5,000区間、重複なし |
+| `tracking_warning` | 文字列 | 追尾の不安定性など（最大250文字に切詰め） |
+| `suggested` | 真偽値 | 自動カット候補から派生したかどうか |
 
 Pages側とPC側の検証条件には細かな許容差やキー数の違いがある。最大キー数など**サーバーの検証結果が最終的な保存可否**を決める。互換性が壊れないよう将来は明示的なスキーマバージョン検査の統合が必要。
 
 ### 7.4 データ保存先
 
 - Pages：編集状態はブラウザのメモリ内。明示的に保存したJSONをダウンロードする。元動画はJSONに入らない。
-- PC：既定で \`data/<project_id>/project.json\`、\`original.<ext>\`、\`proxy.mp4\` または \`proxy360.mp4\`、\`export.mp4\`。
-- \`--data-dir\` または \`MOVIE_MODIFY_DATA\` により保存ディレクトリを変更できる。
+- PC：既定で `data/<project_id>/project.json`、`original.<ext>`、`proxy.mp4` または `proxy360.mp4`、`export.mp4`。
+- `--data-dir` または `MOVIE_MODIFY_DATA` により保存ディレクトリを変更できる。
 - 接続時の補助識別子は一部セッションストレージに保存するが、**動画本体の永続化や完全な同時編集制御をするものではない**。
 
 ## 8. 動画処理・追尾・書き出し
 
 ### 8.1 読込
 
-- PCサーバー側では \`ffprobe\` で幅、高さ、動画秒数、コーデック、音声有無を調べる。
-- 対象の拡張子：\`.mp4\`、\`.mov\`、\`.m4v\`、\`.mkv\`、\`.webm\`（ただし最終的なデコード可否は実際のコーデックに依存）。
+- PCサーバー側では `ffprobe` で幅、高さ、動画秒数、コーデック、音声有無を調べる。
+- 対象の拡張子：`.mp4`、`.mov`、`.m4v`、`.mkv`、`.webm`（ただし最終的なデコード可否は実際のコーデックに依存）。
 - サーバーへの1ファイルの受信上限はコード上**50 GiB**、動画時間は**48時間以下**。
 - 360度は横縦比が少なくとも概ね2:1の正距円筒入力を要求する。アスペクト比だけではスティッチ済みかは検証できない。
-- \`.insv\`、\`.360\` 等のメーカー専用形式は**メーカー純正ソフトで正距円筒MP4等に変換する前処理が必要**。
+- `.insv`、`.360` 等のメーカー専用形式は**メーカー純正ソフトで正距円筒MP4等に変換する前処理が必要**。
 
 ### 8.2 プロキシとプレビュー
 
@@ -360,61 +360,61 @@ Pages側とPC側の検証条件には細かな許容差やキー数の違いが�
 
 ### 8.3 自動カット候補
 
-- **静音解析**：FFmpeg \`silencedetect\`（既定：-36 dB、最短3秒）。静かな場面が必ず不要とは限らない。
+- **静音解析**：FFmpeg `silencedetect`（既定：-36 dB、最短3秒）。静かな場面が必ず不要とは限らない。
 - **Auto-Editor**：任意導入。v1タイムラインをパースして削除候補を出す。
-- 候補を人が選択して適用する。元の \`segments\` を分割し \`keep=false\` を設定するだけで元ファイルを変更しない。
+- 候補を人が選択して適用する。元の `segments` を分割し `keep=false` を設定するだけで元ファイルを変更しない。
 
 ### 8.4 360度人物追尾
 
 - 全景静止画上の位置と追尾枠サイズを指定して処理する。
-- オプション \`opencv-contrib-python-headless\`（必要に応じてNumPy）を用いた**外観追尾**。CSRTとテンプレート類似度を利用する。
+- オプション `opencv-contrib-python-headless`（必要に応じてNumPy）を用いた**外観追尾**。CSRTとテンプレート類似度を利用する。
 - 追尾区間の許容長は**0.25～1,200秒（20分）**。より長い動画は区間を分割する。
-- 推定結果を秒単位のyaw/pitch/FOVキーに変換する。画角計算結果を \`follow\` 区間に紐付ける。
+- 推定結果を秒単位のyaw/pitch/FOVキーに変換する。画角計算結果を `follow` 区間に紐付ける。
 - 顔認識や特定人物の確実な識別は実装していない。遮蔽・似た服装・照明変化・パノラマのつなぎ目では誤追尾する場合がある。
 
 ### 8.5 出力
 
-- PC側は \`ffmpeg\` で **720p（1280×720）**／**1080p（1920×1080）**を生成。追尾キーが複数ある区間には \`v360\`／\`sendcmd\` を使って動く画角を適用。
+- PC側は `ffmpeg` で **720p（1280×720）**／**1080p（1920×1080）**を生成。追尾キーが複数ある区間には `v360`／`sendcmd` を使って動く画角を適用。
 - 出力時は残す区間を処理した後に結合する。音声がある素材では再エンコードして出力する。
 - 結合・フィルタの相対パス化によりWindowsドライブ文字、スペース、クォートを含むフォルダへの互換性対応済み。
 - CPU負荷が高く、8K／長尺では処理時間・ストレージが増える。重いジョブは**1プロセス1ワーカー**で直列に処理する。
-- Pages単独の試験出力は \`MediaRecorder\` による再生等倍の録画。形式・音声取得・再生安定性・iPhone Safariの対応は保証できず、**PCのFFmpeg出力とは同等ではない**。
+- Pages単独の試験出力は `MediaRecorder` による再生等倍の録画。形式・音声取得・再生安定性・iPhone Safariの対応は保証できず、**PCのFFmpeg出力とは同等ではない**。
 
 ## 9. ローカルAPI仕様
 
-サーバー：[\`movie_modify/server.py\`](../movie_modify/server.py)（FastAPI）。\`/api/*\` は \`MOVIE_MODIFY_TOKEN\` 設定時に認証対象となる。ただし \`/api/health\` と \`/api/login\` はログイン前の疎通用。
+サーバー：[`movie_modify/server.py`](../movie_modify/server.py)（FastAPI）。`/api/*` は `MOVIE_MODIFY_TOKEN` 設定時に認証対象となる。ただし `/api/health` と `/api/login` はログイン前の疎通用。
 
 | メソッド | パス | 主な機能 |
 |---|---|---|
-| GET | \`/\` | 詳細エディター |
-| GET | \`/studio/\` | Pagesと同じ共通UIをPCから配信 |
-| GET | \`/studio/pages.js\` 等 | 同一オリジンのWebアセット |
-| POST | \`/api/login\` | アクセストークン認証・Cookie |
-| GET | \`/api/health\` | FFmpeg/FFprobe/Auto-Editor/OpenCVの利用可否 |
-| GET | \`/api/projects\` | 保存済みプロジェクト一覧 |
-| POST | \`/api/projects\` | 動画を登録、プロキシ生成ジョブ開始（multipart） |
-| GET | \`/api/projects/{id}\` | プロジェクト詳細／EDL |
-| PUT | \`/api/projects/{id}/edits\` | \`segments\` の検証・保存 |
-| GET | \`/api/projects/{id}/preview\` | 動画プレビュー |
-| POST | \`/api/projects/{id}/prepare-preview360\` | 360度プロキシ準備（必要時） |
-| GET | \`/api/projects/{id}/preview360\` | 正距円筒プロキシMP4 |
-| GET | \`/api/projects/{id}/frame\` | 指定yaw/pitch/FOVの静止画 |
-| GET | \`/api/projects/{id}/panorama\` | 360度の全景静止画 |
-| POST | \`/api/projects/{id}/track\` | 対象位置からOpenCV追尾ジョブ |
-| POST | \`/api/projects/{id}/analyze\` | 静音/Auto-Editor解析ジョブ |
-| POST | \`/api/projects/{id}/apply-suggestions\` | 選択したカット候補を適用 |
-| POST | \`/api/projects/{id}/render\` | FFmpegで最終動画を書き出すジョブ |
-| GET | \`/api/projects/{id}/export\` | 書き出したMP4を取得 |
-| GET | \`/api/jobs/{job_id}\` | queued/running/done/failed と進捗 |
+| GET | `/` | 詳細エディター |
+| GET | `/studio/` | Pagesと同じ共通UIをPCから配信 |
+| GET | `/studio/pages.js` 等 | 同一オリジンのWebアセット |
+| POST | `/api/login` | アクセストークン認証・Cookie |
+| GET | `/api/health` | FFmpeg/FFprobe/Auto-Editor/OpenCVの利用可否 |
+| GET | `/api/projects` | 保存済みプロジェクト一覧 |
+| POST | `/api/projects` | 動画を登録、プロキシ生成ジョブ開始（multipart） |
+| GET | `/api/projects/{id}` | プロジェクト詳細／EDL |
+| PUT | `/api/projects/{id}/edits` | `segments` の検証・保存 |
+| GET | `/api/projects/{id}/preview` | 動画プレビュー |
+| POST | `/api/projects/{id}/prepare-preview360` | 360度プロキシ準備（必要時） |
+| GET | `/api/projects/{id}/preview360` | 正距円筒プロキシMP4 |
+| GET | `/api/projects/{id}/frame` | 指定yaw/pitch/FOVの静止画 |
+| GET | `/api/projects/{id}/panorama` | 360度の全景静止画 |
+| POST | `/api/projects/{id}/track` | 対象位置からOpenCV追尾ジョブ |
+| POST | `/api/projects/{id}/analyze` | 静音/Auto-Editor解析ジョブ |
+| POST | `/api/projects/{id}/apply-suggestions` | 選択したカット候補を適用 |
+| POST | `/api/projects/{id}/render` | FFmpegで最終動画を書き出すジョブ |
+| GET | `/api/projects/{id}/export` | 書き出したMP4を取得 |
+| GET | `/api/jobs/{job_id}` | queued/running/done/failed と進捗 |
 
 データの例：
 
-- \`POST /api/projects\` は \`file\` と \`projection=flat|equirect\` を受け取る。
-- \`PUT .../edits\` は \`{"segments":[...]}\` を受け取る。
-- \`POST .../track\` は \`segment_index\`, \`x\`, \`y\`, \`box\` を受け取る。
-- \`POST .../analyze\` は \`method=silence|auto_editor\`、\`noise_db\`、\`min_seconds\` を受け取る。
-- \`POST .../render\` は \`size=720p|1080p\` を受け取る。
-- 重い処理はジョブIDを返し、\`GET /api/jobs/{job_id}\` で状態を問い合わせる。ジョブキュー状態はサーバープロセスのメモリ内であり永続化されない。
+- `POST /api/projects` は `file` と `projection=flat|equirect` を受け取る。
+- `PUT .../edits` は `{"segments":[...]}` を受け取る。
+- `POST .../track` は `segment_index`, `x`, `y`, `box` を受け取る。
+- `POST .../analyze` は `method=silence|auto_editor`、`noise_db`、`min_seconds` を受け取る。
+- `POST .../render` は `size=720p|1080p` を受け取る。
+- 重い処理はジョブIDを返し、`GET /api/jobs/{job_id}` で状態を問い合わせる。ジョブキュー状態はサーバープロセスのメモリ内であり永続化されない。
 
 ## 10. 実行環境・インストール・運用
 
@@ -422,46 +422,46 @@ Pages側とPC側の検証条件には細かな許容差やキー数の違いが�
 
 - Windows 10/11（64-bit）またはLinux（Ubuntuなど）。
 - 推奨：Python 3.11以降。FFmpegとFFprobeがPATH上にあること。
-- \`requirements.txt\`：FastAPI、Uvicorn、python-multipart。
-- \`requirements-tracking.txt\`：OpenCV contrib・NumPy（任意）。
-- \`requirements-optional.txt\`：Auto-Editor（任意）。
+- `requirements.txt`：FastAPI、Uvicorn、python-multipart。
+- `requirements-tracking.txt`：OpenCV contrib・NumPy（任意）。
+- `requirements-optional.txt`：Auto-Editor（任意）。
 - 大きな動画に十分な空きディスク、RAM、CPU。32GB以上などの条件は目安であり機能要件の保証値ではない。
 
 ### 10.2 初回起動
 
 Windows（事前にPythonとFFmpegを導入）：
 
-\`\`\`powershell
+```powershell
 winget install --id Gyan.FFmpeg -e
 # ターミナルを開き直す
 .\scripts\start-windows.cmd
-\`\`\`
+```
 
 Ubuntu：
 
-\`\`\`bash
+```bash
 sudo apt update
 sudo apt install -y ffmpeg python3-venv
 bash scripts/start-linux.sh
-\`\`\`
+```
 
-共通のPython CLI：\`python -m movie_modify --port 8000\`。データ保存先変更：\`--data-dir\`。既定は \`127.0.0.1:8000\` のみで外部端末には公開しない。
+共通のPython CLI：`python -m movie_modify --port 8000`。データ保存先変更：`--data-dir`。既定は `127.0.0.1:8000` のみで外部端末には公開しない。
 
 iPhone連携（Windows PowerShellの例）：
 
-\`\`\`powershell
+```powershell
 $env:MOVIE_MODIFY_TOKEN="十分に長いランダムなパスフレーズ"
 .\scripts\start-windows.cmd --lan
-\`\`\`
+```
 
 Linux：
 
-\`\`\`bash
+```bash
 export MOVIE_MODIFY_TOKEN="十分に長いランダムなパスフレーズ"
 bash scripts/start-linux.sh --lan
-\`\`\`
+```
 
-iPhoneのSafariから \`http://<PCのLAN IP>:8000/studio/\`。接続とWindowsファイアウォールの設定は[Windows/Linux運用](windows-linux.md)を参照。
+iPhoneのSafariから `http://<PCのLAN IP>:8000/studio/`。接続とWindowsファイアウォールの設定は[Windows/Linux運用](windows-linux.md)を参照。
 
 ## 11. 安全性・プライバシー・データ保全
 
@@ -472,7 +472,7 @@ iPhoneのSafariから \`http://<PCのLAN IP>:8000/studio/\`。接続とWindows�
 | Pagesでの編集 | ソース動画はブラウザ内で扱う。公開GitHubリポジトリに個人動画をコミットしない |
 | Pages→PC画面移動 | JSONを手動保存・再読込。Pages HTTPSからLAN HTTP APIへ自動リクエストしない |
 | Studio同期 | 確認後に**iPhone等からPCへ元動画を転送**する。大容量・従量通信に注意 |
-| LANでの認証 | \`MOVIE_MODIFY_TOKEN\` のCookie。標準HTTPは暗号化されない |
+| LANでの認証 | `MOVIE_MODIFY_TOKEN` のCookie。標準HTTPは暗号化されない |
 | FFmpeg/追尾 | 原則PC内で処理。外部AIサービスは必須でない |
 | 保存ファイル | 元動画・編集データ・プロキシ・完成動画がPCストレージを消費する |
 | 将来のAI追加 | 外部API利用は別途明示的な設定・同意・データ最小化を設計する |
@@ -480,7 +480,7 @@ iPhoneのSafariから \`http://<PCのLAN IP>:8000/studio/\`。接続とWindows�
 ### 11.2 現在のセキュリティ制約
 
 - FastAPI自体にはTLS/HTTPS機能を設定していない。**認証CookieがあってもHTTPの内容は平文**。
-- \`--lan\` 使用時は長いトークンを必要とするが、信頼できないネットワークやインターネットへのポート開放は避ける。
+- `--lan` 使用時は長いトークンを必要とするが、信頼できないネットワークやインターネットへのポート開放は避ける。
 - 詳細エディターとStudioの静的画面はAPI認証と同じアクセス制御ではない。私的動画を扱う場合はネットワーク境界自体も保護する。
 - 認証・セッション・CSRF対策・HTTPS終端・バックアップ・衝突解決・監査ログは商用公開サーバー相当には未整備。インターネットに直接公開しない。
 - OpenCV追尾は**人物IDの照合ではなく外観推定**。プライバシーと精度上の限界をUIで示す。
@@ -489,9 +489,9 @@ iPhoneのSafariから \`http://<PCのLAN IP>:8000/studio/\`。接続とWindows�
 
 ### 12.1 自動テスト
 
-リポジトリの [\`.github/workflows/tests.yml\`](../.github/workflows/tests.yml) で、**Ubuntu/LinuxランナーとWindowsランナー**のPythonテスト、FFmpeg結合／追尾キーフレーム生成の回帰テスト、静的アセット配信、Pages/Studioブリッジのテスト、JavaScript構文チェックを行う。
+リポジトリの [`.github/workflows/tests.yml`](../.github/workflows/tests.yml) で、**Ubuntu/LinuxランナーとWindowsランナー**のPythonテスト、FFmpeg結合／追尾キーフレーム生成の回帰テスト、静的アセット配信、Pages/Studioブリッジのテスト、JavaScript構文チェックを行う。
 
-初回仕様統合前の確認基準：2026-10-17、[\`main@ba7160d\` のWindows・Linuxテスト成功](https://github.com/kameusagiyahoo/movie_modify/actions/runs/39025902718)、[同コミットのPagesデプロイ成功](https://github.com/kameusagiyahoo/movie_modify/actions/runs/39025902455)。
+初回仕様統合前の確認基準：2026-10-17、[`main@ba7160d` のWindows・Linuxテスト成功](https://github.com/kameusagiyahoo/movie_modify/actions/runs/39025902718)、[同コミットのPagesデプロイ成功](https://github.com/kameusagiyahoo/movie_modify/actions/runs/39025902455)。
 
 ### 12.2 未検証・既知の制約
 
@@ -543,7 +543,7 @@ iPhoneのSafariから \`http://<PCのLAN IP>:8000/studio/\`。接続とWindows�
 
 ### 14.1 正本と補助資料
 
-- **この統合仕様書（正本）**：[\`docs/SPECIFICATION.md\`](SPECIFICATION.md)
+- **この統合仕様書（正本）**：[`docs/SPECIFICATION.md`](SPECIFICATION.md)
 - [README](../README.md)：導入・起動・公開リンク・最短の説明。仕様の詳細は本書を参照。
 - [Pages ↔ ローカル連携手順](bridge-workflow.md)：操作・安全上の注意。
 - [Windows／Linuxセットアップ](windows-linux.md)：具体的な環境構築手順。
