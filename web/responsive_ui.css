@@ -119,3 +119,10 @@ body{overscroll-behavior-y:contain}
  button{transition:none!important}
  *{scroll-behavior:auto!important}
 }
+/* R-02: compact history navigation visible on both editing layouts. */
+#editUndo,#editRedo{min-height:42px}
+#editHistoryDetails{margin:2px 0 7px}
+#editHistoryDetails summary{cursor:pointer;min-height:35px;display:flex;align-items:center;color:#9ad4c9}
+.edit-history-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:6px;margin-top:7px}
+.edit-history-list button{font-size:11px;min-height:38px;white-space:normal;text-align:left}
+.edit-history-list button.current{border-color:var(--mint);color:var(--mint)}
