@@ -7,7 +7,7 @@ import json
 
 from fastapi.testclient import TestClient
 
-from movie_modify.core import fresh_segment
+from movie_modify.core import fresh_segment, normalize_segments
 
 
 def _setup(tmp_path, monkeypatch):
@@ -54,7 +54,7 @@ def test_history_survives_restart_and_restores_with_fresh_revision(tmp_path, mon
             "target_revision":0,"expected_revision":2})
         assert restored.status_code == 200, restored.text
         assert restored.json()["edit_revision"] == 3
-        assert restored.json()["segments"] == original
+        assert restored.json()["segments"] == normalize_segments(original, 10.0)
         assert (folder/"edit_history"/"0000000002.json.gz").is_file()
         assert client.get(url).json()["edit_revision"] == 3
 
