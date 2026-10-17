@@ -37,8 +37,9 @@
 <div id="toast"></div>
 <script src="/assets/live_preview.js"></script>
 <script src="/assets/responsive_ui.js"></script>
+<script src="/assets/edit_history.js"></script>
 <script>
-const $=id=>document.getElementById(id);let current=null,selected=0,video=null,liveViewer=null,liveVideo=null,liveTickTime=-1,jobs=[],panoMode='scenery',target=null;
+const $=id=>document.getElementById(id);let current=null,selected=0,video=null,liveViewer=null,liveVideo=null,liveTickTime=-1,jobs=[],panoMode='scenery',target=null,editHistory=null,historyProjectId=null;
 const escapeHtml=x=>String(x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const secs=x=>{x=Math.max(0,Number(x)||0);return `${Math.floor(x/3600)?String(Math.floor(x/3600)).padStart(2,'0')+':':''}${String(Math.floor(x/60)%60).padStart(2,'0')}:${String(Math.floor(x%60)).padStart(2,'0')}`};
 function alertMsg(message,error=false){let e=$('toast');e.textContent=message;e.style.display='block';e.style.borderColor=error?'#f28c91':'#60dfc6';setTimeout(()=>e.style.display='none',4500)}
@@ -53,11 +54,11 @@ if(requested&&!current&&projects.some(p=>p.id===requested)){
  history.replaceState({},'',location.pathname);
  await openProject(requested);
 }}
-$('upload').onclick=async()=>{const f=$('source').files[0];if(!f)return alertMsg('動画を選択してください',true);let fd=new FormData();fd.append('file',f);fd.append('projection',$('projection').value);$('upload').disabled=true;$('upload').textContent='アップロード中…';try{let res=await api('/api/projects',{method:'POST',body:fd});current=res.project;await loadProjects();drawEditor();watchJob(res.job_id,async()=>{current=await api('/api/projects/'+current.id);drawEditor();await loadProjects()})}catch(e){alertMsg(e.message,true)}finally{$('upload').disabled=false;$('upload').textContent='取り込んでプレビュー生成'}};
+$('upload').onclick=async()=>{const f=$('source').files[0];if(!f)return alertMsg('動画を選択してください',true);let fd=new FormData();fd.append('file',f);fd.append('projection',$('projection').value);$('upload').disabled=true;$('upload').textContent='アップロード中…';try{let res=await api('/api/projects',{method:'POST',body:fd});current=res.project;await loadProjects();drawEditor();watchJob(res.job_id,async()=>{const latest=await api('/api/projects/'+current.id);if(editHistory?.state().canUndo&&historyProjectId===latest.id)latest.segments=current.segments;current=latest;drawEditor();await loadProjects()})}catch(e){alertMsg(e.message,true)}finally{$('upload').disabled=false;$('upload').textContent='取り込んでプレビュー生成'}};
 async function openProject(id){try{current=await api('/api/projects/'+id);selected=0;target=null;panoMode='scenery';drawEditor();await loadProjects()}catch(e){alertMsg(e.message,true)}}
 function drawEditor(){if(!current)return;disposeLive();const p=current;let ready=p.proxy_ready;let html=`<section class="panel"><div class="sectionhead"><div><h2>${escapeHtml(p.name)}</h2><small>${p.projection==='equirect'?'360° equirectangular':'通常動画'} · ${p.width}×${p.height} · ${secs(p.duration)} · ${p.codec}</small></div><span class="badge">非破壊編集</span></div>${p.projection==='equirect'?`<div class="livebox"><canvas class="liveCanvas" id="liveCanvas" aria-label="360度の連続プレビュー"></canvas><video id="player" class="liveSource" playsinline preload="metadata"></video><div class="liveControls"><button id="livePlay" class="primary livePlay" disabled>再生</button><input id="liveSeek" type="range" aria-label="再生位置" min="0" max="${p.duration}" step="0.05" value="0" disabled><label class="liveSkip"><input id="liveSkip" type="checkbox" checked>カット区間を飛ばす</label></div><div id="liveStatus" role="status">360度プレビュー準備中…</div></div>`:`<video id="player" class="video" ${ready?`src="/api/projects/${p.id}/preview"`:''} controls playsinline preload="metadata"></video>`}${ready?'':`<div class="status">プレビュー生成中です。処理が完了すると動画を再生できます。</div>`}<img id="framePreview" class="preview" alt="選択した画角の静止画"><div class="row between" style="margin-top:9px"><span class="number" id="playtime">00:00 / ${secs(p.duration)}</span><button class="mini" id="frameButton">${p.projection==='equirect'?'指定画角の静止画を見る':'現在フレームを見る'}</button></div></section>
 <section class="panel"><div class="sectionhead"><h2>03 / 自動カット候補</h2><span class="badge">AIの判断を強制しません</span></div><div class="row" style="margin-bottom:12px"><div class="formfield"><label>解析エンジン</label><select id="analyzer"><option value="silence">FFmpeg / 静音解析</option><option value="auto_editor">Auto-Editor / 自動カット</option></select></div><div class="formfield"><label>静音閾値</label><select id="noise"><option value="-36">-36 dB</option><option value="-45">-45 dB</option><option value="-30">-30 dB</option></select></div></div><div class="row"><button id="analyze" class="primary">カット候補を解析</button><span class="hint">静かな大切な場面は残す判断が必要です。</span></div><hr class="sep"><div class="suggestions" id="suggestions"></div><button id="apply" style="margin-top:12px" disabled>チェックした候補をカット指定</button></section>
-<section class="panel"><div class="sectionhead"><h2>04 / タイムラインと画角</h2><small id="edlStats"></small></div><div class="timeline" id="timeline"></div><div class="row toolbar" style="margin-top:12px"><button id="split">再生位置で区切る</button><button id="sceneryHere">ここから景色に切り替え</button><button id="toggle">選択区間を残す／カット</button><button id="save" class="primary">編集内容を保存</button></div><div class="two" style="margin-top:13px"><div><h3 style="margin-bottom:9px">区間一覧</h3><div class="segment-list" id="segments"></div></div><div><h3 style="margin-bottom:9px">選択した区間の設定</h3><div class="stack" style="gap:10px;margin-top:9px"><div class="formfield"><label>左右方向 yaw <b id="yawText">0°</b></label><input id="yaw" type="range" min="-180" max="180" step="1"></div><div class="formfield"><label>上下方向 pitch <b id="pitchText">0°</b></label><input id="pitch" type="range" min="-85" max="85" step="1"></div><div class="formfield"><label>画角 FOV <b id="fovText">90°</b></label><input id="fov" type="range" min="40" max="130" step="1"></div><div class="row"><button id="sceneryMode" class="mini">景色・手動</button><button id="followMode" class="mini">人物追尾</button></div>
+<section class="panel"><div class="sectionhead"><h2>04 / タイムラインと画角</h2><small id="edlStats"></small></div><div class="timeline" id="timeline"></div><div class="row" style="margin:9px 0;gap:8px;flex-wrap:wrap"><button id="editUndo" class="mini" disabled>↶ 元に戻す</button><button id="editRedo" class="mini" disabled>↷ やり直す</button><small id="editSafety" style="flex:1;min-width:150px">編集内容はブラウザに自動保存されます。</small><button id="exportDraft" class="mini" style="display:none">保存済み下書きをJSONで救出</button></div><div class="row toolbar" style="margin-top:12px"><button id="split">再生位置で区切る</button><button id="sceneryHere">ここから景色に切り替え</button><button id="toggle">選択区間を残す／カット</button><button id="save" class="primary">編集内容を保存</button></div><div class="two" style="margin-top:13px"><div><h3 style="margin-bottom:9px">区間一覧</h3><div class="segment-list" id="segments"></div></div><div><h3 style="margin-bottom:9px">選択した区間の設定</h3><div class="stack" style="gap:10px;margin-top:9px"><div class="formfield"><label>左右方向 yaw <b id="yawText">0°</b></label><input id="yaw" type="range" min="-180" max="180" step="1"></div><div class="formfield"><label>上下方向 pitch <b id="pitchText">0°</b></label><input id="pitch" type="range" min="-85" max="85" step="1"></div><div class="formfield"><label>画角 FOV <b id="fovText">90°</b></label><input id="fov" type="range" min="40" max="130" step="1"></div><div class="row"><button id="sceneryMode" class="mini">景色・手動</button><button id="followMode" class="mini">人物追尾</button></div>
 <div class="hint" id="panoHelp">景色を映す方向を選ぶには、全景をタップしてください。</div>
 <div class="panoWrap"><img id="panorama" alt="360度全景。タップで追尾対象または景色を選ぶ"><span id="targetDot"></span></div>
 <div class="row"><button class="mini" id="refreshPano">全景を更新</button>
@@ -70,9 +71,120 @@ function drawEditor(){if(!current)return;disposeLive();const p=current;let ready
 if(p.projection==='equirect'){$('sceneryMode').onclick=()=>changePanoMode('scenery');$('followMode').onclick=()=>changePanoMode('follow');
 $('refreshPano').onclick=refreshPanorama;$('panorama').onclick=panoClick;
 $('trackButton').onclick=runTrack;$('addKey').onclick=addKey;
-$('clearKeys').onclick=()=>{let seg=current.segments[selected];seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';drawSegments()};}
+$('clearKeys').onclick=()=>{let seg=current.segments[selected];seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';historyCheckpoint('キー削除');drawSegments()};}
 else{for(const id of ['sceneryHere','sceneryMode','followMode','refreshPano','trackButton','addKey','clearKeys']){const b=$(id);if(b)b.disabled=true}const wrap=$('panorama');if(wrap)wrap.parentElement.style.display='none'}
-$('save').onclick=saveSegments;$('render').onclick=renderVideo;$('resetAngle').onclick=()=>{Object.assign(current.segments[selected],{yaw:0,pitch:0,fov:90,mode:'manual',keyframes:[],tracking_warning:''});drawSegments();updateFrame()};['yaw','pitch','fov'].forEach(k=>{$(k).disabled=p.projection!=='equirect';$(k).oninput=()=>{current.segments[selected][k]=Number($(k).value);$(k+'Text').textContent=$(k).value+'°'}});drawSuggestions();drawSegments();if(p.projection==='equirect'){refreshPanorama();setupLivePreview(p.id)}window.MovieModifyUI?.mount(p)}
+$('save').onclick=saveSegments;$('render').onclick=renderVideo;$('resetAngle').onclick=()=>{Object.assign(current.segments[selected],{yaw:0,pitch:0,fov:90,mode:'manual',keyframes:[],tracking_warning:''});historyCheckpoint('画角リセット');drawSegments();updateFrame()};['yaw','pitch','fov'].forEach(k=>{$(k).disabled=p.projection!=='equirect';$(k).oninput=()=>{current.segments[selected][k]=Number($(k).value);$(k+'Text').textContent=$(k).value+'°';historyCheckpoint('画角スライダー '+k,true)}});drawSuggestions();drawSegments();if(p.projection==='equirect'){refreshPanorama();setupLivePreview(p.id)}window.MovieModifyUI?.mount(p);initializeEditHistory()}
+
+function historySnapshot(){
+ return {segments:MovieModifyEditHistory.clone(current.segments),selected,
+  time:Number(video?.currentTime)||0};
+}
+function validateHistorySnapshot(snapshot){
+ if(!snapshot||!Array.isArray(snapshot.segments)||snapshot.segments.length<1||
+    snapshot.segments.length>5000)throw Error('下書きに不正な区間数があります');
+ let previous=0;
+ for(const seg of snapshot.segments){
+  if(!seg||!Number.isFinite(seg.start)||!Number.isFinite(seg.end)||
+     seg.start<previous-.002||seg.start<0||seg.end>current.duration+.05||
+     seg.end-seg.start<.04||typeof seg.keep!=='boolean'||
+     !['manual','follow'].includes(seg.mode)||
+     !Number.isFinite(seg.yaw)||Math.abs(seg.yaw)>180||
+     !Number.isFinite(seg.pitch)||Math.abs(seg.pitch)>90||
+     !Number.isFinite(seg.fov)||seg.fov<35||seg.fov>140||
+     !Array.isArray(seg.keyframes)||seg.keyframes.length>18000)
+      throw Error('下書きの画角・時間データが不正です');
+  let priorTime=-Infinity;
+  for(const key of seg.keyframes){
+   if(!key||!Number.isFinite(key.time)||key.time<=priorTime+.000001||
+      key.time<seg.start-.001||key.time>seg.end+.001||
+      !Number.isFinite(key.yaw)||Math.abs(key.yaw)>180||
+      !Number.isFinite(key.pitch)||Math.abs(key.pitch)>90||
+      !Number.isFinite(key.fov)||key.fov<35||key.fov>140)
+      throw Error('下書きのキーフレームが不正です');
+   priorTime=key.time;
+  }
+  previous=seg.end;
+ }
+ return {segments:MovieModifyEditHistory.clone(snapshot.segments),
+  selected:Math.max(0,Math.min(snapshot.segments.length-1,Number(snapshot.selected)||0)),
+  time:Math.max(0,Math.min(current.duration-.02,Number(snapshot.time)||0))};
+}
+function historyControls(state){
+ const back=$('editUndo'),forward=$('editRedo'),status=$('editSafety');
+ if(!back||!forward||!status)return;
+ back.disabled=!state.canUndo;forward.disabled=!state.canRedo;
+ back.title=state.undoLabel||'戻せる編集はありません';
+ forward.title=state.redoLabel||'やり直せる編集はありません';
+ status.textContent=state.error||'下書きは端末内に自動保存（PCへの保存は「編集内容を保存」）';
+ status.style.color=state.error?'var(--red)':'var(--mint)';
+}
+function historyCheckpoint(label,merge=false){
+ if(!editHistory||!current||historyProjectId!==current.id)return;
+ editHistory.checkpoint(historySnapshot(),label,merge);
+}
+function historyApply(snapshot){
+ if(!current)return;
+ const safe=validateHistorySnapshot(snapshot);
+ current.segments=safe.segments;selected=safe.selected;
+ if(video)video.currentTime=safe.time;
+ drawSegments();
+}
+function historyUndo(){
+ if(editHistory){const s=editHistory.undo();if(s){historyApply(s);alertMsg('編集を元に戻しました');}}
+}
+function historyRedo(){
+ if(editHistory){const s=editHistory.redo();if(s){historyApply(s);alertMsg('編集をやり直しました');}}
+}
+function exportConflictedDraft(){
+ if(!editHistory)return;
+ const candidate=editHistory.candidate();
+ if(!candidate.snapshot)return alertMsg('保存済みの下書きがありません',true);
+ try{
+  const snapshot=validateHistorySnapshot(candidate.snapshot);
+  const json=JSON.stringify({schema:'movie-modify-recovery/v1',name:current.name,
+   projection:current.projection,duration:current.duration,segments:snapshot.segments},null,2);
+  const url=URL.createObjectURL(new Blob([json],{type:'application/json'}));
+  const a=document.createElement('a');
+  a.href=url;a.download='movie-modify-'+current.id+'-recovery.json';a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),30000);
+ }catch(err){alertMsg(err.message,true)}
+}
+function initializeEditHistory(){
+ if(!current||!$('editUndo'))return;
+ $('editUndo').onclick=historyUndo;$('editRedo').onclick=historyRedo;
+ $('exportDraft').onclick=exportConflictedDraft;
+ if(editHistory&&historyProjectId===current.id){
+  historyControls(editHistory.state());
+  return;
+ }
+ historyProjectId=current.id;
+ const identity={id:current.id,name:current.name,projection:current.projection,
+  duration:current.duration,source:current.source_name,width:current.width,height:current.height};
+ editHistory=new MovieModifyEditHistory.EditHistory({
+  key:'native:'+current.id,identity,initial:historySnapshot(),onUpdate:historyControls
+ });
+ const candidate=editHistory.candidate();
+ if(candidate.status==='available'){
+  if(confirm('このプロジェクトの自動保存下書きがあります。復元しますか？\n復元してもPC側の保存内容は上書きしません。')){
+   try{historyApply(editHistory.restore(candidate.snapshot,validateHistorySnapshot));
+     alertMsg('ブラウザに自動保存した編集内容を復元しました');}
+   catch(err){alertMsg('復元できません: '+err.message,true)}
+  }
+ }else if(candidate.status==='conflict'){
+  $('exportDraft').style.display='inline-block';
+  $('editSafety').textContent='PC側の編集が変更されています。古い下書きを自動復元しません。必要ならJSONで救出してください。';
+  $('editSafety').style.color='var(--red)';
+ }else if(candidate.status==='invalid'){
+  alertMsg('保存済みの下書きを検証できませんでした。',true);
+ }
+}
+document.addEventListener('keydown',ev=>{
+ if(!current||!editHistory||!((ev.ctrlKey||ev.metaKey)&&!ev.altKey))return;
+ if(ev.target.closest('input,textarea,select,[contenteditable]'))return;
+ if(ev.code==='KeyZ'){ev.preventDefault();if(ev.shiftKey)historyRedo();else historyUndo();}
+ else if(ev.code==='KeyY'){ev.preventDefault();historyRedo();}
+});
+
 function drawSuggestions(){if(!current)return;let s=current.suggestions||[];$('suggestions').innerHTML=s.length?s.map((x,i)=>`<label class="suggestion"><input type="checkbox" class="pick" value="${i}" checked><span class="grow">${secs(x.start)} – ${secs(x.end)}</span><span class="muted">${Math.round(x.end-x.start)}秒 · カット候補</span></label>`).join(''):'<p class="hint">候補はありません。解析しても元動画はカットされません。</p>';$('apply').disabled=!s.length}
 function drawSegments(){if(!current)return;queueMicrotask(()=>window.MovieModifyUI?.decorate(current));selected=Math.min(selected,current.segments.length-1);let s=current.segments,kept=s.filter(x=>x.keep).reduce((n,x)=>n+x.end-x.start,0);$('edlStats').textContent=`${s.length}区間 / 残す ${secs(kept)}`;$('timeline').innerHTML=s.map((x,i)=>`<div class="bar ${x.keep?'': 'cut'} ${x.keep&&x.mode==='follow'?'follow':''} ${i===selected?'selected':''}" data-i="${i}" style="width:${100*(x.end-x.start)/current.duration}%" title="${secs(x.start)}–${secs(x.end)}"><span>${x.end-x.start>current.duration*.05?i+1:''}</span></div>`).join('');$('segments').innerHTML=s.map((x,i)=>`<button class="segment ${x.keep?'':'cut'} ${i===selected?'selected':''}" data-i="${i}"><strong>${i+1}</strong><span>${secs(x.start)} – ${secs(x.end)} ${current.projection==='equirect'?` / ${x.mode==='follow'?'追尾': '景色'}`:''}</span><span class="state">${x.keep?'残す':'カット'}</span></button>`).join('');document.querySelectorAll('.bar,.segment').forEach(e=>e.onclick=()=>{selected=Number(e.dataset.i);video.currentTime=current.segments[selected].start;target=null;drawSegments();if(current.projection==='equirect')refreshPanorama()});let x=s[selected], pose=cameraAt(x,Number(video?.currentTime)||x.start);
 for(let k of ['yaw','pitch','fov']){$(k).value=pose[k];$(k+'Text').textContent=Math.round(pose[k])+'°'}
@@ -81,13 +193,13 @@ $('trackWarning').textContent=x.tracking_warning||'';
 $('sceneryMode').style.borderColor=x.mode==='manual'&&panoMode==='scenery'?'var(--mint)':'var(--line)';
 $('followMode').style.borderColor=x.mode==='follow'||panoMode==='follow'?'var(--mint)':'var(--line)';
 $('panoHelp').textContent=panoMode==='follow'?'対象の人物を全景でタップ→「自動追尾」を実行':'景色を全景でタップ。時刻ごとに画角を記録できます。';}}
-function splitHere(){let t=Number(video.currentTime);let i=current.segments.findIndex(x=>t>x.start+.06&&t<x.end-.06);if(i<0)return alertMsg('区間の内部へ再生位置を移動してください',true);let x=current.segments[i];current.segments.splice(i,1,sliceCamera(x,x.start,+t.toFixed(3)),sliceCamera(x,+t.toFixed(3),x.end));selected=i+1;drawSegments()}
-function toggleSelected(){current.segments[selected].keep=!current.segments[selected].keep;drawSegments()}
-async function saveSegments(){try{let p=await api(`/api/projects/${current.id}/edits`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({segments:current.segments})});current=p;drawSegments();alertMsg('編集内容を保存しました')}catch(e){alertMsg(e.message,true)}}
+function splitHere(){let t=Number(video.currentTime);let i=current.segments.findIndex(x=>t>x.start+.06&&t<x.end-.06);if(i<0)return alertMsg('区間の内部へ再生位置を移動してください',true);let x=current.segments[i];current.segments.splice(i,1,sliceCamera(x,x.start,+t.toFixed(3)),sliceCamera(x,+t.toFixed(3),x.end));selected=i+1;historyCheckpoint('分割');drawSegments()}
+function toggleSelected(){current.segments[selected].keep=!current.segments[selected].keep;historyCheckpoint('残す／カット');drawSegments()}
+async function saveSegments(){try{let p=await api(`/api/projects/${current.id}/edits`,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({segments:current.segments})});current=p;if(editHistory)editHistory.markServerSaved(historySnapshot());drawSegments();alertMsg('編集内容をPCに保存しました');return p}catch(e){alertMsg(e.message,true);return null}}
 async function updateFrame(){if(!current)return;let x=current.segments[selected];if(!x)return;let time=Math.min(Math.max(video.currentTime,x.start),x.end-.01);let pose=cameraAt(x,time);let q=new URLSearchParams({time,yaw:pose.yaw,pitch:pose.pitch,fov:pose.fov});let img=$('framePreview');img.src=`/api/projects/${current.id}/frame?${q}`;img.classList.add('show');img.onerror=()=>alertMsg('静止画の生成に失敗しました',true)}
 async function analyzeVideo(){try{let method=$('analyzer').value;let data=await api(`/api/projects/${current.id}/analyze`,body({method,noise_db:Number($('noise').value),min_seconds:3}));watchJob(data.job_id,async()=>{current=await api(`/api/projects/${current.id}`);drawSuggestions();alertMsg(`${current.suggestions.length}件のカット候補を解析しました`)})}catch(e){alertMsg(e.message,true)}}
-async function applySelected(){let indices=[...document.querySelectorAll('.pick:checked')].map(e=>Number(e.value));if(!indices.length)return alertMsg('候補を選択してください',true);try{current=await api(`/api/projects/${current.id}/apply-suggestions`,body({indices}));selected=0;drawSegments();alertMsg('カット候補を編集指示に反映しました。必要な区間は「残す」に戻せます。')}catch(e){alertMsg(e.message,true)}}
-async function renderVideo(){try{await saveSegments();let data=await api(`/api/projects/${current.id}/render`,body({size:$('outputSize').value}));watchJob(data.job_id,()=>{$('download').style.display='inline-block';$('download').href=`/api/projects/${current.id}/export?t=${Date.now()}`;alertMsg('動画を出力しました')})}catch(e){alertMsg(e.message,true)}}
+async function applySelected(){let indices=[...document.querySelectorAll('.pick:checked')].map(e=>Number(e.value));if(!indices.length)return alertMsg('候補を選択してください',true);try{if(!await saveSegments())return;current=await api(`/api/projects/${current.id}/apply-suggestions`,body({indices}));selected=0;historyCheckpoint('自動カット候補を適用');editHistory?.updateBaseline(current.segments);drawSegments();alertMsg('カット候補を編集指示に反映しました。必要な区間は「残す」に戻せます。')}catch(e){alertMsg(e.message,true)}}
+async function renderVideo(){try{if(!await saveSegments())return;let data=await api(`/api/projects/${current.id}/render`,body({size:$('outputSize').value}));watchJob(data.job_id,()=>{$('download').style.display='inline-block';$('download').href=`/api/projects/${current.id}/export?t=${Date.now()}`;alertMsg('動画を出力しました')})}catch(e){alertMsg(e.message,true)}}
 function watchJob(jobId,onFinish){let id=setInterval(async()=>{try{const j=await api('/api/jobs/'+jobId);const elem=$('jobStatus');if(elem){elem.classList.remove('hidden');elem.classList.toggle('error',j.state==='failed');elem.textContent=j.state==='failed'?`処理失敗: ${j.error}`:`${({queued:'処理待ち',running:'処理中',done:'完了'})[j.state]} (${j.progress}%)`;}if(j.state==='done'||j.state==='failed'){clearInterval(id);if(j.state==='done')await onFinish?.();else alertMsg(j.error||'処理に失敗',true)}}catch(e){clearInterval(id);alertMsg(e.message,true)}},1600)}
 
 
@@ -176,7 +288,7 @@ function sceneryHere(){if(current.projection!=='equirect')return;
 let t=Number(video.currentTime),i=current.segments.findIndex(x=>t>x.start+.06&&t<x.end-.06);
 if(i>=0){let x=current.segments[i];current.segments.splice(i,1,sliceCamera(x,x.start,t),sliceCamera(x,t,x.end));selected=i+1}
 let s=current.segments[selected],pose=cameraAt(s,s.start);Object.assign(s,{...pose,mode:'manual',keyframes:[],tracking_warning:''});
-panoMode='scenery';target=null;drawSegments();refreshPanorama();alertMsg('景色の方向を全景画像でタップしてください')}
+panoMode='scenery';target=null;historyCheckpoint('景色へ切り替え');drawSegments();refreshPanorama();alertMsg('景色の方向を全景画像でタップしてください')}
 function changePanoMode(mode){panoMode=mode;target=null;drawSegments();refreshPanorama()}
 function refreshPanorama(){if(!current||current.projection!=='equirect')return;
 let seg=current.segments[selected],t=panoMode==='follow'?seg.start:Math.max(seg.start,Math.min(current.duration-.1,Number(video.currentTime)||seg.start));
@@ -194,11 +306,11 @@ if(seg.mode==='follow'){seg.keyframes=[];seg.mode='manual';seg.tracking_warning=
 if(!seg.keyframes?.length&&time>seg.start+.01)seg.keyframes=[{time:seg.start,yaw:seg.yaw,pitch:seg.pitch,fov:seg.fov}];
 seg.keyframes=seg.keyframes||[];seg.keyframes=seg.keyframes.filter(k=>Math.abs(k.time-time)>.002);
 seg.keyframes.push(key);seg.keyframes.sort((a,b)=>a.time-b.time);
-drawSegments();updateFrame();alertMsg('画角キーフレームを記録しました')}
+historyCheckpoint('画角キー追加');drawSegments();updateFrame();alertMsg('画角キーフレームを記録しました')}
 async function runTrack(){if(!target)return alertMsg('追尾対象をタップしてください',true);
-try{await saveSegments();let sel=selected,chosen={...target};
+try{if(!await saveSegments())return;let sel=selected,chosen={...target};
 let res=await api('/api/projects/'+current.id+'/track',body({segment_index:sel,...chosen,box:Number($('boxSize').value)}));
-$('trackButton').disabled=true;watchJob(res.job_id,async()=>{current=await api('/api/projects/'+current.id);selected=sel;panoMode='scenery';target=null;drawSegments();updateFrame();alertMsg('追尾完了。遮蔽・似た人物の場面を確認してください')})
+$('trackButton').disabled=true;watchJob(res.job_id,async()=>{current=await api('/api/projects/'+current.id);selected=sel;panoMode='scenery';target=null;historyCheckpoint('人物追尾');editHistory?.updateBaseline(current.segments);drawSegments();updateFrame();alertMsg('追尾完了。遮蔽・似た人物の場面を確認してください')})
 }catch(e){alertMsg(e.message,true)}}
 
 start();
