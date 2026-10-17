@@ -15,6 +15,20 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## R-10 (partial): PC-side edit revision backups
+
+Every committed EDL change archives the **previous** source-timeline edits in
+`data/<project-id>/edit_history/<revision>.json.gz` on the local PC.
+Up to **30 older revisions** are retained, independently of browser tabs,
+the last autosave draft and the original movie. The advanced editor and Studio
+can open the **PC保存履歴** list and restore an earlier revision. Restoration
+archives the current edits first and creates a new revision, guarded against
+stale writes with `expected_revision`.
+
+No media bytes are duplicated by this EDL history. These are backups on the
+**same disk**, so they do not survive drive failure or manual removal of the
+data directory. FFmpeg render jobs do not yet survive server restarts.
+
 ## R-03 / R-04: safe multi-device edits and resumable local transfer
 
 The Windows/Linux backend now stores an integer **edit_revision** with each
