@@ -83,6 +83,7 @@ def test_native_edl_import_preserves_view_modes(tmp_path,monkeypatch):
             {"start":1,"end":2,"keep":False,"mode":"manual","yaw":120,
              "pitch":0,"fov":90,"keyframes":[]}
         ]}
+        body["expected_revision"]=res.json()["project"]["edit_revision"]
         saved=client.put("/api/projects/"+pid+"/edits",json=body)
         assert saved.status_code==200,saved.text
         remote=client.get("/api/projects/"+pid).json()
