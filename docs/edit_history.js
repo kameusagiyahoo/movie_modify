@@ -97,7 +97,7 @@
             typeof entry.savedAt !== "number" ||
             entry.snapshot.segments.length < 1 || entry.snapshot.segments.length > 5000)
           return {status: "invalid"};
-        if (entry.baseline !== this.baseHash) return {status: "conflict", savedAt: entry.savedAt};
+        if (entry.baseline !== this.baseHash) return {status: "conflict", snapshot: clone(entry.snapshot), savedAt: entry.savedAt};
         if (equal(entry.snapshot, this.current())) return {status: "unchanged"};
         return {status: "available", snapshot: clone(entry.snapshot), savedAt: entry.savedAt};
       } catch (_) { return {status: "invalid"}; }
@@ -107,6 +107,12 @@
       if (!safe || !Array.isArray(safe.segments)) throw Error("Invalid restored timeline");
       this.checkpoint(safe, "自動保存から復元");
       return safe;
+    }
+    // Server-driven updates (e.g. tracking) can refresh the reference without
+    // discarding the user's ability to undo the action in this browser session.
+    updateBaseline(segments) {
+      this.baseHash = hash(segments);
+      this.persist();
     }
     // A successful manual server save changes the reference used for conflict detection.
     // Never erase a draft after a failed network save.
