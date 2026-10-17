@@ -206,7 +206,8 @@
       viewport.scrollLeft = Math.max(0, x - viewport.clientWidth * .5);
     }
   }
-  function decorate() {
+  function decorate(project) {
+    if (project) activeProject = project;
     const track = $("timeline");
     if (!track || !activeProject || !track.closest(".has-editor")) return;
     if (!track.parentElement.classList.contains("timeline-scroll")) return;
