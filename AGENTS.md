@@ -7,11 +7,11 @@ Never upload family footage, audio or transcripts to a third-party API.
 ## Japanese prose
 
 The upstream yomiyasu Agent Skill is vendored in
-\`.agents/skills/yomiyasu/SKILL.md\` for use by Codex.
+`.agents/skills/yomiyasu/SKILL.md` for use by Codex.
 
 When requested to revise Japanese writing, or while drafting significant
 Japanese README, UI help, specifications or PR text, explicitly load
-\`/yomiyasu\` or \`$yomiyasu:yomiyasu\` and follow its checks.
+`/yomiyasu` or `$yomiyasu:yomiyasu` and follow its checks.
 Review the output before committing. Preserve technical facts, quantities,
 negations, conditions and whether a feature is implemented or planned.
 
