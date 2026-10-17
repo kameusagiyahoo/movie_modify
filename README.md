@@ -86,3 +86,13 @@ pytest -q
 2. 360 moving **yaw/pitch keyframes** and local person tracking; use camera-native tracking metadata where available.
 3. Multi-source timeline and automatic event grouping.
 4. Media indexing, encrypted backups and resumable render queues.
+
+
+## yomiyasu: Japanese writing for development
+
+The [yomiyasu](https://github.com/nanaism/yomiyasu) Agent Skill is vendored
+at [`.agents/skills/yomiyasu/`](.agents/skills/yomiyasu/SKILL.md).
+It helps Codex revise Japanese documentation, UI instructions and PR text.
+Use `/yomiyasu` or `$yomiyasu:yomiyasu` from Codex. This is **not**
+a video editor, subtitle engine, or AI inference component; it never runs
+in the Movie Modify media backend. See [the guide](docs/yomiyasu.md).
