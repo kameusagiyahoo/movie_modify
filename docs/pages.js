@@ -483,5 +483,15 @@
     vp.addEventListener('touchend',e=>{if(e.touches.length<2)pinch=0;},{passive:true});
     syncControls();switchTab('timeline');
   }
+  // Shared browser edit state. The optional native bridge reads it only
+  // after an explicit user action, never in the background.
+  window.MovieModifyPagesBridge = {
+    getState: () => ({
+      ready: loaded, file, projection, duration, dirty,
+      project: loaded ? projectJson() : null
+    }),
+    applyProject,
+    saveJson
+  };
   bind();
 })();
