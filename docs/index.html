@@ -96,7 +96,7 @@
         <div id="bridgeNative" hidden>
           <p class="small muted">この画面はPCのローカルサーバーから配信されています。明示的に同期した元動画と編集JSONを、PC側で処理できます。</p>
           <div class="stack-actions">
-            <button id="bridgeSync" type="button">動画と編集をPCに同期</button>
+            <button id="bridgeSync" type="button">動画と編集をPCに同期</button><progress id="bridgeProgress" max="100" value="0" hidden aria-label="動画の転送進捗"></progress><button id="bridgePause" type="button" hidden>転送を一時停止</button>
             <label class="input-label" for="bridgeSize">FFmpeg書き出し解像度</label>
             <select id="bridgeSize"><option value="720p">720p（軽量）</option><option value="1080p">1080p（高画質）</option></select>
             <button id="bridgeExport" class="primary" type="button">PCで高画質MP4を生成</button>
