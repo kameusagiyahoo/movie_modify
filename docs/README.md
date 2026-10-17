@@ -1,5 +1,7 @@
 # Movie Modify Pages edition
 
+> **[統合仕様書（全モード共通・日本語）](SPECIFICATION.md)** が最新の正本です。Pagesだけでなく、Windows/LinuxローカルStudio、人物追尾、API、編集JSONの仕様も一括して記載しています。
+
 - Open `index.html` in a local HTTP server, or publish this `docs/` directory with GitHub Pages.
 - Load a normal smartphone MP4/MOV, or a stitched equirectangular 2:1 MP4.
 - Edit cut/keep intervals, reframe 360° footage with yaw/pitch/FOV keyframes, and preview the result continuously.
