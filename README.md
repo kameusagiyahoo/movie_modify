@@ -8,7 +8,8 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Select regular (flat) video or **equirectangular 360°** at import time.
 - Generate **non-destructive cut suggestions** using FFmpeg `silencedetect`, with optional [Auto-Editor](https://auto-editor.com/) v1 timeline support.
 - Manually approve suggestions. Split segments at the player position; keep / cut individual segments.
-- For 360° sources, change **yaw / pitch / FOV per segment**, view a still preview from the original footage. Each segment can show the child *or* the scenery.
+- For stitched 360° sources, select a person in a panoramic still and generate local OpenCV **auto-follow keyframes**. Switch to a fixed or manually keyframed scenic view at any point in the **same timeline**. The trajectory is rendered into 16:9 MP4.
+- Manually edit yaw/pitch/FOV at several times; angles smoothly interpolate by the shortest direction across the 360° seam. Camera keyframes remain valid after splitting or applying cut suggestions.
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
@@ -25,6 +26,16 @@ python -m uvicorn movie_modify.server:app --host 127.0.0.1 --port 8000
 ```
 
 Open **http://127.0.0.1:8000** on this machine. Select a video to import. No external API keys are required.
+
+For optional 360° person/appearance tracking (processed locally; no downloaded neural-network weights):
+
+```bash
+pip install -r requirements-tracking.txt
+```
+
+Use a stitched 2:1 panorama, place the playhead, split the timeline where the desired camera mode changes, select **人物追尾**, tap a person in the panorama, and run **選択した人物を自動追尾**. For scenery, select **ここから景色に切り替え**, tap the desired panorama direction, and add further keyframes to create a smooth pan. Then save and render as usual.
+
+This is an **appearance tracker, not verified child identification**: other people, camera shake, changing lighting, seam crossings or temporary occlusion can cause tracking drift. Check the resulting camera trajectory before export. Each tracking job is limited to 20 minutes; longer footage is split into segments first. The fixed-front browser video preview does not show the moving output directly: use **選択画角の静止画を見る** at chosen times, or render the output.
 
 For optional Auto-Editor suggestions:
 
@@ -58,17 +69,17 @@ Find your PC's LAN IP (`hostname -I`) and visit `http://PC_LAN_IP:8000` on iPhon
 | Render / concatenate | `media.render` | projection flag | FFmpeg |
 | Review UI | `web/index.html` | uses capability flags | Modern browser |
 
-JSON `segments` use *source* seconds, are ordered and non-overlapping. Each has `start`, `end`, `keep`, `yaw`, `pitch`, `fov`. Nothing deletes the original media. Auto-Editor analysis never applies cuts without the user's approval. Scenes, VLM, speech transcription and tracking can be installed as **future analysis plug-ins** that emit the same timecoded suggestions or view keyframes.
+JSON `segments` use *source* seconds, are ordered and non-overlapping. Each has `start`, `end`, `keep`, `yaw`, `pitch`, `fov`, `mode` (`manual` or `follow`), and optional source-time `keyframes` (`time`, `yaw`, `pitch`, `fov`). Nothing deletes the original media. Auto-Editor analysis never applies cuts without the user's approval. Additional scene classifiers, VLMs and speech transcription can be installed as **future analysis plug-ins** that emit timecoded suggestions or camera keyframes.
 
 ### 360 camera limitations
 
-Vendor-specific files (`.insv`, `.360`, dual-fisheye) need the camera manufacturer's **stitching / horizon-stabilization tool** to output equirectangular MP4/MOV first. A 2:1 aspect ratio alone does *not* prove that a source is stitched, and this app does not infer it automatically. Currently viewport orientation is **static within each segment**; a dynamic person-tracking / keyframe interpolation adapter is planned, not represented as complete. Flat smartphone videos support cuts but not an invented off-frame camera view.
+Vendor-specific files (`.insv`, `.360`, dual-fisheye) need the camera manufacturer's **stitching / horizon-stabilization tool** to output equirectangular MP4/MOV first. A 2:1 aspect ratio alone does *not* prove that a source is stitched, and this app does not infer it automatically. The optional OpenCV adapter generates moving keyframes for locally selected targets. It is not an identity-recognition model and cannot guarantee correct tracking through occlusions. Flat smartphone videos support cuts but not an invented off-frame camera view.
 
 ### Known MVP constraints
 
 - Cut suggestions based on silence can wrongly flag quiet but meaningful family moments; approval is required.
 - Rendering re-encodes each kept segment to consistent H.264/AAC, which is CPU-intensive for long or 8K footage; processing is serialized to protect machines with limited memory.
-- Browser preview is a fixed front-facing viewport for 360°; the still-image viewpoint preview and final output use segment settings.
+- Browser video preview is fixed front-facing for 360°; the still-image viewpoint preview samples the active keyframe trajectory, and final output uses animated orientation.
 - The app edits **one source video per project**; multi-camera/multi-clip timelines are future extensions.
 - Networked UI has no HTTPS by itself; LAN token protects endpoints but does not encrypt traffic.
 - The job queue and progress are in memory; projects, cuts and exports remain on disk after restart. Large uploads are written in chunks; close the app carefully during processing.
@@ -83,7 +94,7 @@ pytest -q
 ## Roadmap
 
 1. Add scene/motion detection as analysis plug-ins (PySceneDetect, models), without touching EDL.
-2. 360 moving **yaw/pitch keyframes** and local person tracking; use camera-native tracking metadata where available.
+2. Improve tracker resilience (camera motion / occlusion / seam tests); optionally import camera-native tracking metadata.
 3. Multi-source timeline and automatic event grouping.
 4. Media indexing, encrypted backups and resumable render queues.
 
