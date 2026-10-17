@@ -83,6 +83,80 @@ async function applySelected(){let indices=[...document.querySelectorAll('.pick:
 async function renderVideo(){try{await saveSegments();let data=await api(`/api/projects/${current.id}/render`,body({size:$('outputSize').value}));watchJob(data.job_id,()=>{$('download').style.display='inline-block';$('download').href=`/api/projects/${current.id}/export?t=${Date.now()}`;alertMsg('動画を出力しました')})}catch(e){alertMsg(e.message,true)}}
 function watchJob(jobId,onFinish){let id=setInterval(async()=>{try{const j=await api('/api/jobs/'+jobId);const elem=$('jobStatus');if(elem){elem.classList.remove('hidden');elem.classList.toggle('error',j.state==='failed');elem.textContent=j.state==='failed'?`処理失敗: ${j.error}`:`${({queued:'処理待ち',running:'処理中',done:'完了'})[j.state]} (${j.progress}%)`;}if(j.state==='done'||j.state==='failed'){clearInterval(id);if(j.state==='done')await onFinish?.();else alertMsg(j.error||'処理に失敗',true)}}catch(e){clearInterval(id);alertMsg(e.message,true)}},1600)}
 
+
+function disposeLive(){
+  if(liveViewer){liveViewer.destroy();liveViewer=null}
+  if(liveVideo){liveVideo.pause();liveVideo.removeAttribute('src');liveVideo.load();liveVideo=null}
+}
+function syncLiveUi(t){
+  if(!current||!video||current.projection!=='equirect'||liveVideo!==video)return;
+  const play=$('livePlay'),seek=$('liveSeek'),status=$('liveStatus');
+  if(!play||!seek)return;
+  play.textContent=video.paused?'再生':'一時停止';
+  if(!seek.matches(':active'))seek.value=Math.min(t,current.duration);
+  const index=current.segments.findIndex(s=>t>=s.start-.001&&t<s.end-.005);
+  if(!video.paused&&$('liveSkip')?.checked&&(index<0||!current.segments[index].keep)){
+    const next=current.segments.find(s=>s.keep&&s.start>t+.005);
+    if(next){video.currentTime=next.start;return}
+    video.pause();status.textContent='最後の保存区間まで再生しました';return;
+  }
+  if(index>=0&&selected!==index){selected=index;drawSegments()}
+  if(Math.abs(t-liveTickTime)>.15||video.paused){
+    liveTickTime=t;
+    if($('playtime'))$('playtime').textContent=secs(t)+' / '+secs(current.duration);
+    if(index>=0){
+      const seg=current.segments[index],pose=cameraAt(seg,t);
+      status.textContent=(seg.keep?(seg.mode==='follow'?'人物追尾':'景色・手動'):'カット候補')+
+        ' · 左右 '+Math.round(pose.yaw)+'° / 上下 '+Math.round(pose.pitch)+'°';
+    }
+  }
+}
+async function setupLivePreview(projectId){
+  const element=video,status=$('liveStatus'),seek=$('liveSeek'),play=$('livePlay');
+  if(!element||!status||!seek||!play)return;
+  let result;
+  try{result=await api('/api/projects/'+projectId+'/prepare-preview360',{method:'POST'})}
+  catch(err){status.textContent='準備できません: '+err.message;return}
+  if(current?.id!==projectId||video!==element)return;
+  liveVideo=element;
+  const activate=()=>{
+    if(current?.id!==projectId||video!==element)return;
+    status.textContent='360度映像を読み込んでいます…';
+    element.src='/api/projects/'+projectId+'/preview360';
+    element.load();
+    element.onloadedmetadata=()=>{
+      if(video!==element)return;
+      seek.max=Math.min(current.duration,element.duration||current.duration);
+      seek.disabled=false;play.disabled=false;
+      status.textContent='準備完了。再生すると画角の切り替えを確認できます。';
+    };
+    element.onerror=()=>{status.textContent='映像を再生できません。H.264対応ブラウザで開いてください。'};
+    try{
+      liveViewer=new LivePanoramaPreview($('liveCanvas'),element,
+        t=>{
+          const segments=current?.segments||[];
+          const seg=segments.find(s=>t>=s.start-.001&&t<s.end-.001)||
+            segments.find(s=>s.start>t)||segments[segments.length-1];
+          return seg?cameraAt(seg,t):{yaw:0,pitch:0,fov:90};
+        },
+        t=>syncLiveUi(t));
+      liveViewer.onError=err=>{status.textContent='描画エラー: '+err.message};
+    }catch(err){
+      status.textContent='WebGL非対応のため全景を表示します: '+err.message;
+      element.className='video';element.style.cssText='display:block;position:static;width:100%;height:auto;opacity:1;pointer-events:auto';element.controls=true;
+    }
+  };
+  play.onclick=async()=>{
+    try{if(element.paused)await element.play();else element.pause()}
+    catch(err){status.textContent='再生エラー: '+err.message}
+    play.textContent=element.paused?'再生':'一時停止';
+  };
+  seek.oninput=()=>{element.currentTime=Number(seek.value);syncLiveUi(element.currentTime)};
+  if(result.ready){activate();return}
+  status.textContent='360度プレビューを生成中（初回のみ）';
+  watchJob(result.job_id,activate,()=>{status.textContent='360度プレビュー生成に失敗しました'});
+}
+
 function wrapYaw(deg){return ((deg+180)%360+360)%360-180}
 function cameraAt(seg,t){let base={yaw:seg.yaw,pitch:seg.pitch,fov:seg.fov},keys=seg.keyframes||[];
 if(!keys.length)return base;
