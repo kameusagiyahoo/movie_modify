@@ -34,11 +34,14 @@ EXECUTOR = ThreadPoolExecutor(max_workers=1)
 JOBS: dict[str, dict] = {}
 PREVIEW_JOBS: dict[str, str] = {}
 JOB_LOCK = threading.Lock()
+# Serializes read→check→write for every project mutation, including background jobs.
+PROJECT_LOCK = threading.RLock()
 app = FastAPI(title="Movie Modify", docs_url=None, redoc_url=None)
 
 
 class EditPayload(BaseModel):
     segments: list[dict]
+    expected_revision: int
 
 
 class AnalyzePayload(BaseModel):
@@ -49,6 +52,7 @@ class AnalyzePayload(BaseModel):
 
 class ApplyPayload(BaseModel):
     indices: list[int]
+    expected_revision: int
 
 
 class RenderPayload(BaseModel):
@@ -60,6 +64,7 @@ class TrackPayload(BaseModel):
     x: float
     y: float
     box: float = 0.10
+    expected_revision: int
 
 
 class LoginPayload(BaseModel):
@@ -166,14 +171,40 @@ def _directory(project_id: str) -> Path:
 
 
 def _project(project_id: str) -> dict:
-    return json.loads((_directory(project_id) / "project.json").read_text(encoding="utf-8"))
+    with PROJECT_LOCK:
+        result = json.loads((_directory(project_id) / "project.json").read_text(encoding="utf-8"))
+        # Compatibility with pre-R03 projects.
+        result.setdefault("edit_revision", 0)
+        return result
 
 
 def _save(project: dict):
-    directory = _directory(project["id"])
-    temp = directory / "project.json.tmp"
-    temp.write_text(json.dumps(project, ensure_ascii=False, indent=2), encoding="utf-8")
-    temp.replace(directory / "project.json")
+    with PROJECT_LOCK:
+        directory = _directory(project["id"])
+        project.setdefault("edit_revision", 0)
+        temp = directory / ("project." + uuid.uuid4().hex + ".tmp")
+        try:
+            temp.write_text(json.dumps(project, ensure_ascii=False, indent=2), encoding="utf-8")
+            temp.replace(directory / "project.json")
+        finally:
+            temp.unlink(missing_ok=True)
+
+
+def _require_revision(project: dict, expected: int) -> None:
+    if expected != project["edit_revision"]:
+        raise HTTPException(status_code=409, detail={
+            "code": "revision_conflict",
+            "message": "Other device or tab saved newer edits. Reload before saving.",
+            "current_revision": project["edit_revision"],
+        })
+
+
+def _commit_edits(project: dict, segments: list[dict]) -> dict:
+    if segments != project["segments"]:
+        project["segments"] = segments
+        project["edit_revision"] += 1
+        _save(project)
+    return project
 
 
 def _job(fn):
@@ -248,7 +279,7 @@ async def import_video(file: UploadFile = File(...), projection: str = Form("fla
             raise HTTPException(400, "360 equirectangular input must be approximately 2:1")
         project = dict(id=project_id, name=Path(file.filename or "Video").name, projection=projection,
                        source_name=source.name, proxy_ready=False, suggestions=[],
-                       segments=[fresh_segment(0, metadata["duration"])], **metadata)
+                       edit_revision=0, segments=[fresh_segment(0, metadata["duration"])], **metadata)
         _save(project)
     except Exception:
         shutil.rmtree(directory, ignore_errors=True)
@@ -263,9 +294,10 @@ async def import_video(file: UploadFile = File(...), projection: str = Form("fla
             create_panorama_proxy(source, directory / "proxy360.mp4")
         else:
             create_proxy(source, directory / "proxy.mp4", projection)
-        latest = _project(project_id)
-        latest["proxy_ready"] = True
-        _save(latest)
+        with PROJECT_LOCK:
+            latest = _project(project_id)
+            latest["proxy_ready"] = True
+            _save(latest)
     task = _job(make_proxy)
     if projection == "equirect":
         # Reuse the upload transcoding job if the editor opens before it finishes.
@@ -369,6 +401,7 @@ def track(project_id: str, payload: TrackPayload):
         raise HTTPException(503, "pip install -r requirements-tracking.txt")
     if not 0 <= payload.segment_index < len(project["segments"]):
         raise HTTPException(422, "Unknown segment")
+    _require_revision(project, payload.expected_revision)
     segment = project["segments"][payload.segment_index]
     if not segment["keep"]:
         raise HTTPException(422, "Cannot track removed interval")
@@ -381,28 +414,32 @@ def track(project_id: str, payload: TrackPayload):
     def work(update):
         keys, warning = track_panorama(path, segment["start"], segment["end"],
                                        payload.x, payload.y, payload.box, callback=update)
-        latest = _project(project_id)
-        if payload.segment_index >= len(latest["segments"]):
-            raise RuntimeError("Timeline changed during tracking")
-        candidate = latest["segments"][payload.segment_index]
-        if (candidate["start"], candidate["end"]) != (segment["start"], segment["end"]):
-            raise RuntimeError("Timeline changed during tracking")
-        candidate.update(mode="follow", keyframes=keys, tracking_warning=warning)
-        latest["segments"] = normalize_segments(latest["segments"], latest["duration"])
-        _save(latest)
+        with PROJECT_LOCK:
+            latest = _project(project_id)
+            # A saved edit while the tracker was busy invalidates the result.
+            _require_revision(latest, payload.expected_revision)
+            if payload.segment_index >= len(latest["segments"]):
+                raise RuntimeError("Timeline changed during tracking")
+            candidate = latest["segments"][payload.segment_index]
+            if candidate != segment:
+                raise RuntimeError("Selected segment changed during tracking")
+            candidate.update(mode="follow", keyframes=keys, tracking_warning=warning)
+            normalized = normalize_segments(latest["segments"], latest["duration"])
+            _commit_edits(latest, normalized)
         update(100)
     return _job(work)
 
 
 @app.put("/api/projects/{project_id}/edits")
 def save_edits(project_id: str, payload: EditPayload):
-    project = _project(project_id)
-    try:
-        project["segments"] = normalize_segments(payload.segments, project["duration"])
-    except ValueError as exc:
-        raise HTTPException(422, str(exc)) from exc
-    _save(project)
-    return project
+    with PROJECT_LOCK:
+        project = _project(project_id)
+        _require_revision(project, payload.expected_revision)
+        try:
+            normalized = normalize_segments(payload.segments, project["duration"])
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return _commit_edits(project, normalized)
 
 
 @app.post("/api/projects/{project_id}/analyze")
@@ -419,23 +456,25 @@ def analyze(project_id: str, payload: AnalyzePayload):
             suggestions = silence_suggestions(source, project["duration"], project["has_audio"], payload.noise_db, payload.min_seconds)
         else:
             suggestions = auto_editor_suggestions(source, project["duration"], directory)
-        current = _project(project_id)
-        current["suggestions"] = suggestions
-        _save(current)
+        with PROJECT_LOCK:
+            current = _project(project_id)
+            current["suggestions"] = suggestions
+            _save(current)
     return _job(work)
 
 
 @app.post("/api/projects/{project_id}/apply-suggestions")
 def apply(project_id: str, payload: ApplyPayload):
-    project = _project(project_id)
-    if any(type(i) is not int or i < 0 or i >= len(project["suggestions"]) for i in payload.indices):
-        raise HTTPException(422, "Unknown suggestion index")
-    try:
-        project["segments"] = apply_suggestions(project["segments"], project["suggestions"], payload.indices, project["duration"])
-    except ValueError as exc:
-        raise HTTPException(422, str(exc)) from exc
-    _save(project)
-    return project
+    with PROJECT_LOCK:
+        project = _project(project_id)
+        _require_revision(project, payload.expected_revision)
+        if any(type(i) is not int or i < 0 or i >= len(project["suggestions"]) for i in payload.indices):
+            raise HTTPException(422, "Unknown suggestion index")
+        try:
+            normalized = apply_suggestions(project["segments"], project["suggestions"], payload.indices, project["duration"])
+        except ValueError as exc:
+            raise HTTPException(422, str(exc)) from exc
+        return _commit_edits(project, normalized)
 
 
 @app.post("/api/projects/{project_id}/render")
