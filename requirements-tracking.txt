@@ -1,0 +1,3 @@
+# Optional offline 360-degree appearance tracker
+opencv-contrib-python-headless>=4.8,<5
+numpy>=1.24,<3
