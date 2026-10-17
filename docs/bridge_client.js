@@ -9,6 +9,7 @@
   let serverProjectId = null;
   let localFile = null;
   let lastServerSegments = null;
+  let lastServerRevision = null;
   let busy = false;
   const REMEMBER_KEY = "movie-modify-native-project";
   function remembered() {
@@ -21,7 +22,8 @@
     sessionStorage.setItem(REMEMBER_KEY, JSON.stringify({
       id:serverProjectId, name:snap.file.name, size:snap.file.size,
       modified:snap.file.lastModified, projection:snap.projection,
-      duration:snap.duration, baseline:lastServerSegments
+      duration:snap.duration, baseline:lastServerSegments,
+      revision:lastServerRevision
     }));
   }
 
@@ -67,7 +69,7 @@
       throw Error("先にこの画面で元動画を読み込んでください。");
     }
     if(snapshot.file !== localFile) {
-      serverProjectId=null;lastServerSegments=null;localFile=snapshot.file;
+      serverProjectId=null;lastServerSegments=null;lastServerRevision=null;localFile=snapshot.file;
       const saved=remembered();
       if(saved && saved.name===snapshot.file.name && saved.size===snapshot.file.size &&
         saved.modified===snapshot.file.lastModified &&
@@ -75,6 +77,7 @@
         Math.abs(saved.duration-snapshot.duration)<1) {
         serverProjectId=saved.id;
         lastServerSegments=saved.baseline;
+        lastServerRevision=Number.isInteger(saved.revision)?saved.revision:null;
       }
     }
     if(!serverProjectId) {
@@ -91,16 +94,26 @@
       say("元動画をローカルPCへ送信中…");
       const created=await api("/api/projects",{method:"POST",body:data});
       serverProjectId=created.project.id;
+      lastServerRevision=created.project.edit_revision;
+      remember();
       await waitJob(created.job_id,"プレビュー生成");
     }
     const remote=await api("/api/projects/"+serverProjectId);
-    if(lastServerSegments!==null && json(remote.segments)!==lastServerSegments) {
-      throw Error("PC側で編集内容が変更されています。「PC側の編集を取得」して確認してください。");
+    if(lastServerRevision===null) {
+      // Legacy session storage: resolve the revision only if we have a
+      // matching old baseline. Never treat a missing revision as permission.
+      if(lastServerSegments!==null && json(remote.segments)===lastServerSegments)
+        lastServerRevision=remote.edit_revision;
+      else throw Error("PC側の編集版数を確認できません。PC側の編集を取得してください。");
+    }
+    if(remote.edit_revision!==lastServerRevision) {
+      throw Error("別の画面がPCの編集を更新しました。同期を中止しました。PC側の編集を取得してください。");
     }
     const result=await api("/api/projects/"+serverProjectId+"/edits",{
       method:"PUT",headers:{"Content-Type":"application/json"},
-      body:json({segments:snapshot.project.segments})
+      body:json({segments:snapshot.project.segments,expected_revision:lastServerRevision})
     });
+    lastServerRevision=result.edit_revision;
     lastServerSegments=json(result.segments);
     remember();
     say("編集内容をPCに同期しました。元動画はPCに保存されています。");
@@ -132,6 +145,7 @@
          Math.abs(saved.duration-snapshot.duration)<1){
         serverProjectId=saved.id;
         lastServerSegments=saved.baseline;
+        lastServerRevision=Number.isInteger(saved.revision)?saved.revision:null;
         localFile=snapshot.file;
       }
     }
@@ -140,6 +154,7 @@
     const project=await api("/api/projects/"+serverProjectId);
     editor().applyProject(project);
     lastServerSegments=json(project.segments);
+    lastServerRevision=project.edit_revision;
     remember();
     say("PC側の画角・カット編集を読み込みました。");
   }
