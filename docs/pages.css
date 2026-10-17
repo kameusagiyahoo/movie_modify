@@ -4,3 +4,18 @@
 @media(max-width:1000px){.app-layout{grid-template-columns:220px 1fr}.inspector{grid-column:2;display:grid;grid-template-columns:1fr 1fr}.viewer{position:relative;top:auto}}
 @media(max-width:730px){.topbar{padding:8px 10px}.brand strong{font-size:16px}.brand small{font-size:9px}.mark{width:31px;height:31px}.local-pill{display:none}.top-actions button{padding:8px;font-size:11px}.app-layout{display:flex;flex-direction:column;padding:9px 9px calc(92px + env(safe-area-inset-bottom));gap:7px}.sidebar{display:none}body.library-open .sidebar{display:flex;position:fixed;z-index:40;top:0;bottom:0;right:0;left:0;background:#09121b;padding:16px 12px;overflow:auto}.workspace,.inspector{display:contents}.panel{padding:12px;border-radius:12px}.viewer{order:1;position:sticky;top:0;z-index:18;padding:8px;background:#0d1d29;box-shadow:0 5px 20px #0008}.viewer-heading{margin-bottom:7px}.viewer-heading h1{font-size:13px}.viewer-heading p{font-size:10px}.viewer .player-surface{max-height:37vh}.viewer .playback{margin-top:7px}.viewer .playback button{min-width:70px;padding:9px 5px}.mobile-library{display:block;font-size:11px;white-space:nowrap}.mobile-tabs{display:grid;order:2;grid-template-columns:repeat(3,1fr);gap:5px}.mobile-tabs button{min-height:43px;padding:8px 3px;font-size:12px}.mobile-tabs .active{background:var(--mint);color:#092824;font-weight:750}.timeline-panel{order:3}.camera-panel{order:4}.output-panel{order:5}.inspector>.panel:last-child{display:none}body[data-tab="timeline"] .camera-panel,body[data-tab="timeline"] .output-panel,body[data-tab="camera"] .timeline-panel,body[data-tab="camera"] .output-panel,body[data-tab="output"] .timeline-panel,body[data-tab="output"] .camera-panel{display:none}.timeline{height:64px}.clip{min-height:64px}.segment-list{max-height:240px}.edit-actions{display:none}.mobile-actions{position:fixed;z-index:30;left:0;right:0;bottom:0;display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:8px max(9px,env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(9px,env(safe-area-inset-left));background:#0f202be8;backdrop-filter:blur(12px);border-top:1px solid var(--edge)}.mobile-actions button{padding:7px 3px;min-height:44px;font-size:11px}.status{bottom:calc(84px + env(safe-area-inset-bottom))}}
 @media(max-width:390px){.playback{gap:5px}.clock{font-size:10px}.viewer-heading p{display:none}}
+
+/* Optional native-bridge controls, visible inside the Output tab on mobile. */
+.bridge-panel{margin-top:16px;padding-top:14px;border-top:1px solid var(--edge);display:grid;gap:10px}
+.bridge-panel [hidden]{display:none!important}
+.bridge-panel .panel-heading{align-items:flex-start;gap:8px;flex-wrap:wrap}
+.bridge-panel h2{margin:0}
+.bridge-panel .stack-actions{display:grid;gap:8px;margin:8px 0}
+.bridge-panel input,.bridge-panel select{width:100%;min-height:42px;min-width:0}
+.bridge-panel button{min-height:42px;width:100%}
+.bridge-panel .small{margin:8px 0;line-height:1.55}
+.bridge-panel .input-label{display:block;margin-top:8px}
+.bridge-status{padding:9px 10px;border:1px solid var(--edge);background:#0a1e29;
+  border-radius:9px;font-size:12px;line-height:1.5;color:#a0f0dc;overflow-wrap:anywhere}
+.bridge-status.error{color:#ffb7b4;border-color:#96555b}
+#bridgeDownload{display:block;border-radius:10px;padding:10px;background:#25534b}
