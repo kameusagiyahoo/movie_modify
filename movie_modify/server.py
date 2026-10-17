@@ -81,6 +81,16 @@ def homepage():
     return WEB.read_text(encoding="utf-8")
 
 
+@app.get("/assets/responsive_ui.css")
+def adaptive_editor_css():
+    return FileResponse(ROOT / "web" / "responsive_ui.css", media_type="text/css")
+
+
+@app.get("/assets/responsive_ui.js")
+def adaptive_editor_js():
+    return FileResponse(ROOT / "web" / "responsive_ui.js", media_type="text/javascript")
+
+
 @app.get("/assets/live_preview.js")
 def panorama_viewer_script():
     """Serve client renderer locally; no CDN required."""
