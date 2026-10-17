@@ -58,7 +58,7 @@ $('upload').onclick=async()=>{const f=$('source').files[0];if(!f)return alertMsg
 async function openProject(id){try{current=await api('/api/projects/'+id);selected=0;target=null;panoMode='scenery';drawEditor();await loadProjects()}catch(e){alertMsg(e.message,true)}}
 function drawEditor(){if(!current)return;disposeLive();const p=current;let ready=p.proxy_ready;let html=`<section class="panel"><div class="sectionhead"><div><h2>${escapeHtml(p.name)}</h2><small>${p.projection==='equirect'?'360° equirectangular':'通常動画'} · ${p.width}×${p.height} · ${secs(p.duration)} · ${p.codec}</small></div><span class="badge">非破壊編集</span></div>${p.projection==='equirect'?`<div class="livebox"><canvas class="liveCanvas" id="liveCanvas" aria-label="360度の連続プレビュー"></canvas><video id="player" class="liveSource" playsinline preload="metadata"></video><div class="liveControls"><button id="livePlay" class="primary livePlay" disabled>再生</button><input id="liveSeek" type="range" aria-label="再生位置" min="0" max="${p.duration}" step="0.05" value="0" disabled><label class="liveSkip"><input id="liveSkip" type="checkbox" checked>カット区間を飛ばす</label></div><div id="liveStatus" role="status">360度プレビュー準備中…</div></div>`:`<video id="player" class="video" ${ready?`src="/api/projects/${p.id}/preview"`:''} controls playsinline preload="metadata"></video>`}${ready?'':`<div class="status">プレビュー生成中です。処理が完了すると動画を再生できます。</div>`}<img id="framePreview" class="preview" alt="選択した画角の静止画"><div class="row between" style="margin-top:9px"><span class="number" id="playtime">00:00 / ${secs(p.duration)}</span><button class="mini" id="frameButton">${p.projection==='equirect'?'指定画角の静止画を見る':'現在フレームを見る'}</button></div></section>
 <section class="panel"><div class="sectionhead"><h2>03 / 自動カット候補</h2><span class="badge">AIの判断を強制しません</span></div><div class="row" style="margin-bottom:12px"><div class="formfield"><label>解析エンジン</label><select id="analyzer"><option value="silence">FFmpeg / 静音解析</option><option value="auto_editor">Auto-Editor / 自動カット</option></select></div><div class="formfield"><label>静音閾値</label><select id="noise"><option value="-36">-36 dB</option><option value="-45">-45 dB</option><option value="-30">-30 dB</option></select></div></div><div class="row"><button id="analyze" class="primary">カット候補を解析</button><span class="hint">静かな大切な場面は残す判断が必要です。</span></div><hr class="sep"><div class="suggestions" id="suggestions"></div><button id="apply" style="margin-top:12px" disabled>チェックした候補をカット指定</button></section>
-<section class="panel"><div class="sectionhead"><h2>04 / タイムラインと画角</h2><small id="edlStats"></small></div><div class="timeline" id="timeline"></div><div class="row" style="margin:9px 0;gap:8px;flex-wrap:wrap"><button id="editUndo" class="mini" disabled>↶ 元に戻す</button><button id="editRedo" class="mini" disabled>↷ やり直す</button><small id="editSafety" style="flex:1;min-width:150px">編集内容はブラウザに自動保存されます。</small><button id="exportDraft" class="mini" style="display:none">保存済み下書きをJSONで救出</button></div><div class="row toolbar" style="margin-top:12px"><button id="split">再生位置で区切る</button><button id="sceneryHere">ここから景色に切り替え</button><button id="toggle">選択区間を残す／カット</button><button id="save" class="primary">編集内容を保存</button></div><div class="two" style="margin-top:13px"><div><h3 style="margin-bottom:9px">区間一覧</h3><div class="segment-list" id="segments"></div></div><div><h3 style="margin-bottom:9px">選択した区間の設定</h3><div class="stack" style="gap:10px;margin-top:9px"><div class="formfield"><label>左右方向 yaw <b id="yawText">0°</b></label><input id="yaw" type="range" min="-180" max="180" step="1"></div><div class="formfield"><label>上下方向 pitch <b id="pitchText">0°</b></label><input id="pitch" type="range" min="-85" max="85" step="1"></div><div class="formfield"><label>画角 FOV <b id="fovText">90°</b></label><input id="fov" type="range" min="40" max="130" step="1"></div><div class="row"><button id="sceneryMode" class="mini">景色・手動</button><button id="followMode" class="mini">人物追尾</button></div>
+<section class="panel"><div class="sectionhead"><h2>04 / タイムラインと画角</h2><small id="edlStats"></small></div><div class="timeline" id="timeline"></div><div class="row" style="margin:9px 0;gap:8px;flex-wrap:wrap"><button id="editUndo" class="mini" disabled>↶ 元に戻す</button><button id="editRedo" class="mini" disabled>↷ やり直す</button><small id="editSafety" style="flex:1;min-width:150px">編集内容はブラウザに自動保存されます。</small><details id="editHistoryDetails" style="width:100%;font-size:12px"><summary>編集履歴を表示</summary><div id="editHistoryList" class="edit-history-list"></div></details><button id="exportDraft" class="mini" style="display:none">保存済み下書きをJSONで救出</button></div><div class="row toolbar" style="margin-top:12px"><button id="split">再生位置で区切る</button><button id="sceneryHere">ここから景色に切り替え</button><button id="toggle">選択区間を残す／カット</button><button id="save" class="primary">編集内容を保存</button></div><div class="two" style="margin-top:13px"><div><h3 style="margin-bottom:9px">区間一覧</h3><div class="segment-list" id="segments"></div></div><div><h3 style="margin-bottom:9px">選択した区間の設定</h3><div class="stack" style="gap:10px;margin-top:9px"><div class="formfield"><label>左右方向 yaw <b id="yawText">0°</b></label><input id="yaw" type="range" min="-180" max="180" step="1"></div><div class="formfield"><label>上下方向 pitch <b id="pitchText">0°</b></label><input id="pitch" type="range" min="-85" max="85" step="1"></div><div class="formfield"><label>画角 FOV <b id="fovText">90°</b></label><input id="fov" type="range" min="40" max="130" step="1"></div><div class="row"><button id="sceneryMode" class="mini">景色・手動</button><button id="followMode" class="mini">人物追尾</button></div>
 <div class="hint" id="panoHelp">景色を映す方向を選ぶには、全景をタップしてください。</div>
 <div class="panoWrap"><img id="panorama" alt="360度全景。タップで追尾対象または景色を選ぶ"><span id="targetDot"></span></div>
 <div class="row"><button class="mini" id="refreshPano">全景を更新</button>
@@ -117,6 +117,21 @@ function historyControls(state){
  forward.title=state.redoLabel||'やり直せる編集はありません';
  status.textContent=state.error||'下書きは端末内に自動保存（PCへの保存は「編集内容を保存」）';
  status.style.color=state.error?'var(--red)':'var(--mint)';
+ drawHistorySteps();
+}
+function drawHistorySteps(){
+ const area=$('editHistoryList');
+ if(!area||!editHistory)return;
+ area.replaceChildren();
+ const start=Math.max(0,editHistory.entries.length-10);
+ editHistory.entries.slice(start).forEach((entry,offset)=>{
+  const index=start+offset,b=document.createElement('button');
+  b.className='mini'+(index===editHistory.cursor?' current':'');
+  b.type='button';b.textContent=(index+1)+' · '+entry.label;
+  b.disabled=index===editHistory.cursor;
+  b.onclick=()=>{historyApply(editHistory.goTo(index));alertMsg('指定した編集履歴へ移動しました')};
+  area.append(b);
+ });
 }
 function historyCheckpoint(label,merge=false){
  if(!editHistory||!current||historyProjectId!==current.id)return;
@@ -177,6 +192,7 @@ function initializeEditHistory(){
  }else if(candidate.status==='invalid'){
   alertMsg('保存済みの下書きを検証できませんでした。',true);
  }
+ historyControls(editHistory.state());
 }
 document.addEventListener('keydown',ev=>{
  if(!current||!editHistory||!((ev.ctrlKey||ev.metaKey)&&!ev.altKey))return;
