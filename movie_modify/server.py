@@ -16,7 +16,7 @@ from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from pydantic import BaseModel
 
 from .core import apply_suggestions, fresh_segment, normalize_segments
@@ -79,6 +79,39 @@ async def restrict_api(request: Request, call_next):
 @app.get("/", response_class=HTMLResponse)
 def homepage():
     return WEB.read_text(encoding="utf-8")
+
+
+# The same GitHub Pages editor can run on the local server. Pages (HTTPS)
+# cannot directly call an HTTP/LAN backend because browsers block mixed content
+# and Private Network Access requests. Serving this at one origin avoids CORS.
+@app.get("/studio")
+def studio_redirect():
+    return RedirectResponse(url="/studio/", status_code=307)
+
+
+@app.get("/studio/", response_class=HTMLResponse)
+def studio_home():
+    return (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+
+
+@app.get("/studio/pages.js")
+def studio_script():
+    return FileResponse(ROOT / "docs" / "pages.js", media_type="text/javascript")
+
+
+@app.get("/studio/pages.css")
+def studio_styles():
+    return FileResponse(ROOT / "docs" / "pages.css", media_type="text/css")
+
+
+@app.get("/studio/live_preview.js")
+def studio_webgl():
+    return FileResponse(ROOT / "docs" / "live_preview.js", media_type="text/javascript")
+
+
+@app.get("/studio/bridge_client.js")
+def studio_bridge():
+    return FileResponse(ROOT / "docs" / "bridge_client.js", media_type="text/javascript")
 
 
 @app.get("/assets/responsive_ui.css")
