@@ -35,7 +35,10 @@ test('desktop Pages: split, cut, undo, redo, recovery after reload', async ({pag
   await expect(page.locator('#timeline .clip.cut')).toHaveCount(1);
 
   // The same source file triggers a user-approved localStorage draft restore.
+  // beforeunload warns about unsaved edits; accept navigation first.
+  page.once('dialog',d=>d.accept());
   await page.reload();
+  // Reopening the same movie explicitly confirms restoring the draft.
   page.once('dialog',d=>d.accept());
   await page.locator('#fileInput').setInputFiles(fixture);
   await expect(page.locator('#segmentList > *')).toHaveCount(2);
