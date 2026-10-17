@@ -14,8 +14,8 @@ def clamp(value: float, low: float, high: float) -> float:
 
 def fresh_segment(start: float, end: float, *, suggested: bool = False) -> dict:
     return {"start": round(start, 3), "end": round(end, 3), "keep": True,
-            "yaw": 0.0, "pitch": 0.0, "fov": 90.0,
-            "suggested": suggested}
+            "yaw": 0.0, "pitch": 0.0, "fov": 90.0, "mode": "manual",
+            "keyframes": [], "suggested": suggested}
 
 
 def normalize_segments(segments: list[dict], duration: float) -> list[dict]:
@@ -44,12 +44,69 @@ def normalize_segments(segments: list[dict], duration: float) -> list[dict]:
             raise ValueError("Invalid 360 viewing angle")
         if type(item.get("keep", True)) is not bool:
             raise ValueError("keep must be boolean")
+        mode = item.get("mode", "manual")
+        if mode not in ("manual", "follow"):
+            raise ValueError("Invalid camera mode")
+        raw = item.get("keyframes", [])
+        if not isinstance(raw, list) or len(raw) > 18000:
+            raise ValueError("Invalid keyframes")
+        keys, last_time = [], -float("inf")
+        for key in raw:
+            try:
+                values = {k: float(key[k]) for k in ("time", "yaw", "pitch", "fov")}
+            except (KeyError, ValueError, TypeError) as exc:
+                raise ValueError("Invalid keyframe") from exc
+            if (not all(map(math.isfinite, values.values()))
+                or values["time"] < start - .001 or values["time"] > end + .001
+                or values["time"] <= last_time + .000001
+                or not -180 <= values["yaw"] <= 180
+                or not -90 <= values["pitch"] <= 90
+                or not 35 <= values["fov"] <= 140):
+                raise ValueError("Out-of-range keyframe")
+            last_time = values["time"]
+            keys.append({k: round(v, 4) for k, v in values.items()})
         result.append({"start": round(max(0, start), 3), "end": round(min(end, duration), 3),
                        "keep": item.get("keep", True), "yaw": yaw, "pitch": pitch,
-                       "fov": fov, "suggested": bool(item.get("suggested", False))})
+                       "fov": fov, "mode": mode, "keyframes": keys,
+                       "tracking_warning": str(item.get("tracking_warning", ""))[:250],
+                       "suggested": bool(item.get("suggested", False))})
         last_end = end
     return result
 
+
+
+def wrap_yaw(yaw: float) -> float:
+    return (float(yaw) + 180) % 360 - 180
+
+
+def camera_at(segment: dict, time: float) -> dict:
+    """Camera pose in source-time coordinates, interpolated across the seam."""
+    base = {k: float(segment.get(k, d)) for k, d in (("yaw", 0), ("pitch", 0), ("fov", 90))}
+    points = segment.get("keyframes") or []
+    if not points:
+        return base
+    if time <= points[0]["time"]:
+        return {k: points[0][k] for k in base}
+    if time >= points[-1]["time"]:
+        return {k: points[-1][k] for k in base}
+    for a, b in zip(points, points[1:]):
+        if a["time"] <= time <= b["time"]:
+            r = (time - a["time"]) / (b["time"] - a["time"])
+            return {"yaw": wrap_yaw(a["yaw"] + wrap_yaw(b["yaw"] - a["yaw"]) * r),
+                    "pitch": a["pitch"] + (b["pitch"] - a["pitch"]) * r,
+                    "fov": a["fov"] + (b["fov"] - a["fov"]) * r}
+    return base
+
+
+def slice_segment(segment: dict, start: float, end: float) -> dict:
+    """Preserve tracked/manual camera paths when cutting or splitting."""
+    part = dict(segment, start=round(start, 3), end=round(end, 3))
+    if segment.get("keyframes"):
+        moments = [start] + [k["time"] for k in segment["keyframes"] if start < k["time"] < end] + [end]
+        part["keyframes"] = [{"time": round(t, 4), **camera_at(segment, t)} for t in sorted(set(moments))]
+    else:
+        part["keyframes"] = []
+    return part
 
 def merge_intervals(intervals: list[tuple[float, float]], duration: float, min_length: float = 0) -> list[dict]:
     clean = sorted((max(0.0, float(a)), min(duration, float(b))) for a, b in intervals
@@ -73,7 +130,7 @@ def apply_suggestions(segments: list[dict], suggestions: list[dict], indices: li
     for segment in normalize_segments(segments, duration):
         stops = [segment["start"]] + [t for t in boundaries if segment["start"] + .001 < t < segment["end"] - .001] + [segment["end"]]
         for a, b in zip(stops, stops[1:]):
-            new = dict(segment, start=a, end=b)
+            new = slice_segment(segment, a, b)
             if any(a >= float(x["start"]) - .001 and b <= float(x["end"]) + .001 for x in chosen):
                 new["keep"] = False
                 new["suggested"] = True
