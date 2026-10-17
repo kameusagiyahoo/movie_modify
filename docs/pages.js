@@ -86,6 +86,28 @@
     if(state.error){label.textContent=state.error;label.classList.add('error');}
     else {label.classList.remove('error');
       label.textContent='編集内容を端末内に自動保存中（元動画は保存されません）';}
+    drawEditHistory();
+  }
+  function drawEditHistory() {
+    const area=$('editHistoryList');
+    if(!area||!editHistory)return;
+    area.replaceChildren();
+    const start=Math.max(0,editHistory.entries.length-10);
+    editHistory.entries.slice(start).forEach((entry,offset)=>{
+      const index=start+offset;
+      const b=document.createElement('button');
+      b.type='button';
+      b.textContent=(index+1)+' · '+entry.label;
+      b.className=index===editHistory.cursor?'current':'';
+      b.disabled=index===editHistory.cursor||recordBusy;
+      b.onclick=()=>{
+        if(!editHistory||recordBusy)return;
+        applySnapshot(editHistory.goTo(index));
+        dirty=true;
+        notify('選択した履歴へ移動しました');
+      };
+      area.append(b);
+    });
   }
   function checkpoint(label) {
     if(!loaded||!editHistory)return;
@@ -115,7 +137,7 @@
     editHistory=new MovieModifyEditHistory.EditHistory({
       key,identity,initial:editorSnapshot(),onUpdate:setHistoryStatus
     });
-    if(skipRestore)return;
+    if(skipRestore){setHistoryStatus(editHistory.state());return;}
     const candidate=editHistory.candidate();
     if(candidate.status==='available') {
       const date=new Date(candidate.savedAt).toLocaleString('ja-JP');
@@ -129,6 +151,7 @@
     } else if(candidate.status==='invalid'||candidate.status==='conflict') {
       notify('以前の下書きは現在の動画に安全に適用できないため、復元しませんでした。',true);
     }
+    setHistoryStatus(editHistory.state());
   }
 
   function cameraAt(segment,t) {
