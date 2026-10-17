@@ -1,5 +1,7 @@
 # Movie Modify — privacy-first modular video editor
 
+> **[統合仕様書（最新版・日本語・構成図付き）](docs/SPECIFICATION.md)** — 機能要件、画面設計、システム構成、編集JSON、API、プラットフォーム、検証状況、ロードマップの**正本**。このREADMEは概要と起動案内です。
+
 A **working local MVP** for standard smartphone MP4/MOV and **already-stitched equirectangular 360° video**. Separate import adapters, analysis plug-ins, edit decisions and FFmpeg renderer keep the system extensible. Videos are not uploaded to a cloud service.
 
 ## What works
