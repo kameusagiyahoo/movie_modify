@@ -1,0 +1,2 @@
+# Optional automatic cut suggestions (FFmpeg silence detection works without this)
+auto-editor>=4
