@@ -31,7 +31,7 @@ assert.strictEqual(x.state().canUndo,false);
 assert.strictEqual(x.candidate().status,'empty');
 assert.strictEqual(x.checkpoint(s(20),'angle'),true);
 assert.strictEqual(x.state().canUndo,true);
-assert.strictEqual(x.candidate().status,'available');
+assert.strictEqual(x.candidate().status,'unchanged'); // The in-memory state already matches disk.
 assert.strictEqual(x.undo().segments[0].yaw,0);
 assert.strictEqual(x.state().canRedo,true);
 assert.strictEqual(x.redo().segments[0].yaw,20);
@@ -39,6 +39,9 @@ assert.strictEqual(x.undo().segments[0].yaw,0);
 assert.strictEqual(x.checkpoint(s(35),'new branch'),true);
 assert.strictEqual(x.state().canRedo,false);
 assert.strictEqual(x.undo().segments[0].yaw,0);
+assert.strictEqual(x.goTo(x.entries.length-1).segments[0].yaw,35);
+assert.strictEqual(x.goTo(0).segments[0].yaw,0);
+assert.strictEqual(x.goTo(x.entries.length-1).segments[0].yaw,35);
 // Recover from reloading the same movie in the same origin
 let fresh = new History({key:'test',identity:{name:'family.mp4',size:900},initial:s()});
 let draft=fresh.candidate();
