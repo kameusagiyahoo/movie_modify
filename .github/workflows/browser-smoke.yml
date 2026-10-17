@@ -22,8 +22,8 @@ jobs:
           python -m pip install -r requirements.txt httpx
           ffmpeg -hide_banner -loglevel error -y \
             -f lavfi -i testsrc2=size=320x240:rate=24:duration=3 \
-            -c:v libx264 -preset ultrafast -pix_fmt yuv420p \
-            -movflags +faststart tests/browser/fixture.mp4
+            -c:v libvpx -deadline realtime -cpu-used 8 -b:v 350k \
+            -pix_fmt yuv420p tests/browser/fixture.webm
       - name: Install headless Chromium
         run: |
           npm install --no-save @playwright/test@1.55.0
