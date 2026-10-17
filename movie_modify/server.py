@@ -204,7 +204,12 @@ async def import_video(file: UploadFile = File(...), projection: str = Form("fla
         await file.close()
 
     def make_proxy(update):
-        create_proxy(source, directory / "proxy.mp4", projection)
+        if projection == "equirect":
+            # New 360 imports need just one low-resolution 2:1 proxy.
+            # The live WebGL viewport replaces the old fixed-angle transcode.
+            create_panorama_proxy(source, directory / "proxy360.mp4")
+        else:
+            create_proxy(source, directory / "proxy.mp4", projection)
         latest = _project(project_id)
         latest["proxy_ready"] = True
         _save(latest)
@@ -220,6 +225,8 @@ def project_detail(project_id: str):
 def preview(project_id: str):
     directory = _directory(project_id)
     path = directory / "proxy.mp4"
+    if not path.is_file() and _project(project_id)["projection"] == "equirect":
+        path = directory / "proxy360.mp4"
     if not path.is_file():
         raise HTTPException(409, "Proxy still processing")
     return FileResponse(path, media_type="video/mp4", filename="preview.mp4", content_disposition_type="inline")
