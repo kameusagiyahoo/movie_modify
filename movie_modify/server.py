@@ -213,7 +213,12 @@ async def import_video(file: UploadFile = File(...), projection: str = Form("fla
         latest = _project(project_id)
         latest["proxy_ready"] = True
         _save(latest)
-    return {"project": project, **_job(make_proxy)}
+    task = _job(make_proxy)
+    if projection == "equirect":
+        # Reuse the upload transcoding job if the editor opens before it finishes.
+        with JOB_LOCK:
+            PREVIEW_JOBS[project_id] = task["job_id"]
+    return {"project": project, **task}
 
 
 @app.get("/api/projects/{project_id}")
