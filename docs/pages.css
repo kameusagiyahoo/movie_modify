@@ -32,3 +32,15 @@
  .top-actions .local-pill{display:none}
  .spec-link{padding:8px;font-size:11px;min-height:40px}
 }
+
+/* R-02: prominent, thumb-sized undo/redo and draft-state feedback. */
+.history-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.history-actions button{min-width:84px;min-height:42px;padding:8px 10px}
+.edit-safety{font-size:11px;line-height:1.5;color:#9ce7cb;margin:9px 0;
+  padding:8px 11px;background:#14342f;border:1px solid #27675d;border-radius:9px}
+.edit-safety.error{color:#ffbab8;border-color:#97545b;background:#40272c}
+@media(max-width:730px){
+ .timeline-panel .panel-heading{flex-wrap:wrap;gap:8px}
+ .history-actions{order:3;width:100%}
+ .history-actions button{flex:1}
+}
