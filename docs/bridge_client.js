@@ -236,6 +236,49 @@
     remember();
     say("PC側の画角・カット編集を読み込みました。");
   }
+  async function showServerHistory() {
+    const snapshot=state();
+    if(!snapshot?.ready || !snapshot.file)
+      throw Error("まず同じ元動画をこの画面で開いてください。");
+    if(!serverProjectId) {
+      const saved=remembered();
+      if(saved&&saved.name===snapshot.file.name&&saved.size===snapshot.file.size&&
+         saved.modified===snapshot.file.lastModified&&
+         saved.projection===snapshot.projection&&
+         Math.abs(saved.duration-snapshot.duration)<1){
+        serverProjectId=saved.id;
+        lastServerRevision=Number.isInteger(saved.revision)?saved.revision:null;
+        lastServerSegments=saved.baseline;
+        localFile=snapshot.file;
+      }
+    }
+    if(!serverProjectId)throw Error("先に動画をPCに同期してください。");
+    const listing=await api("/api/projects/"+serverProjectId+"/edit-history");
+    const area=$("bridgeServerHistoryList");
+    area.replaceChildren();
+    for(const item of listing.revisions){
+      const button=document.createElement("button");
+      button.type="button";
+      button.textContent="版 "+item.revision+(item.archived?" · 保存前":" · 最新");
+      button.disabled=!item.archived;
+      button.onclick=()=>action(async()=>{
+        if(lastServerRevision!==listing.current_revision)
+          throw Error("PC側の編集版が変わっています。PC側の編集を取得してください。");
+        if(!confirm("PCの版 "+item.revision+" の編集内容へ戻しますか？\n現在の編集内容は保存履歴に退避されます。必要ならブラウザのJSONを先に保存してください。"))return;
+        const restored=await api("/api/projects/"+serverProjectId+"/restore-revision",
+          payload({target_revision:item.revision,expected_revision:lastServerRevision}));
+        lastServerRevision=restored.edit_revision;
+        lastServerSegments=json(restored.segments);
+        remember();
+        editor().applyProject(restored);
+        say("PCの保存履歴を復元しました。最新の版: "+lastServerRevision);
+        await showServerHistory();
+      });
+      area.append(button);
+    }
+    say("PCに保存された編集履歴を表示しました。");
+  }
+
   function targetFromInput() {
     const raw=$("bridgeAddress").value.trim();
     const url=new URL(raw.includes("://")?raw:"http://"+raw);
@@ -267,6 +310,7 @@
         location.assign("/?project="+encodeURIComponent(id));
       });
       $("bridgePull").onclick=()=>action(pullFromServer);
+      $("bridgeServerHistory").onclick=()=>action(showServerHistory);
       $("bridgeLoginButton").onclick=()=>action(async()=>{
         const password=$("bridgePassword").value;
         await api("/api/login",payload({password}));
