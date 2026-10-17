@@ -79,6 +79,40 @@
       <p id="exportSupport" class="small muted">ブラウザの動画録画対応を確認中です。</p>
       <p class="small muted">ブラウザのMediaRecorderを使用し、実時間で録画します。形式・音声の収録・解像度はブラウザに依存します。長尺・高画質・確実な書き出しにはPCのローカル版が適しています。</p>
       <a id="downloadVideo" class="download hidden" download>完成動画を保存</a>
+      <section id="bridgePanel" class="bridge-panel" aria-labelledby="bridgeHeading">
+        <div class="panel-heading"><h2 id="bridgeHeading">PCの高機能エンジン</h2>
+        <span class="chip" id="bridgeBadge">接続モードを判定中</span></div>
+        <div id="bridgePages">
+          <p class="small muted">Windows／LinuxでMovie Modifyを起動すると、人物追尾・自動カット・FFmpeg書き出しができます。GitHub PagesからローカルHTTP APIへの直接通信は行いません。</p>
+          <label class="input-label" for="bridgeAddress">PCのアドレス</label>
+          <input id="bridgeAddress" type="text" value="http://127.0.0.1:8000" placeholder="例 http://192.168.1.10:8000" autocomplete="off">
+          <p class="small muted">PC自身なら127.0.0.1、iPhoneならPCのLAN IPを入力してください。同じプライベートWi-Fi内で使用します。</p>
+          <div class="stack-actions">
+            <button id="bridgeSaveFirst" type="button">編集JSONを保存して引き継ぐ</button>
+            <button id="bridgeOpen" class="primary" type="button">ローカル編集画面を開く ↗</button>
+          </div>
+          <p class="small muted">別サイトへ移動すると、ブラウザが開いている動画を引き継げません。編集JSONを保存し、ローカル画面で動画とJSONを選び直してください。</p>
+        </div>
+        <div id="bridgeNative" hidden>
+          <p class="small muted">この画面はPCのローカルサーバーから配信されています。明示的に同期した元動画と編集JSONを、PC側で処理できます。</p>
+          <div class="stack-actions">
+            <button id="bridgeSync" type="button">動画と編集をPCに同期</button>
+            <label class="input-label" for="bridgeSize">FFmpeg書き出し解像度</label>
+            <select id="bridgeSize"><option value="720p">720p（軽量）</option><option value="1080p">1080p（高画質）</option></select>
+            <button id="bridgeExport" class="primary" type="button">PCで高画質MP4を生成</button>
+            <a id="bridgeDownload" class="download" href="#" hidden>完成したMP4をダウンロード</a>
+            <button id="bridgeOpenEditor" type="button">人物追尾・自動カットの詳細編集 ↗</button>
+            <button id="bridgePull" type="button">PC側の編集結果をこの画面に取得</button>
+          </div>
+          <div id="bridgeLogin" hidden>
+            <label class="input-label" for="bridgePassword">PCサーバーのアクセス用パスフレーズ</label>
+            <input type="password" id="bridgePassword" autocomplete="current-password">
+            <button type="button" id="bridgeLoginButton">接続を認証</button>
+          </div>
+          <p class="small muted">同期すると動画が現在のPCにコピーされます。Wi-FiでHTTPを使う場合、通信は暗号化されません。機密性が必要ならHTTPSや信頼できるVPNを使用してください。</p>
+        </div>
+        <p id="bridgeStatus" class="bridge-status" role="status" aria-live="polite"></p>
+      </section>
     </section>
     <section class="panel">
       <h2>できること / できないこと</h2>
@@ -90,5 +124,6 @@
 <div id="status" class="status hidden" role="status"></div>
 <script src="./live_preview.js"></script>
 <script src="./pages.js" defer></script>
+<script src="./bridge_client.js" defer></script>
 </body>
 </html>
