@@ -70,6 +70,14 @@
       this.onUpdate(this.state());
       return this.current();
     }
+    goTo(index) {
+      if (!Number.isInteger(index) || index < 0 || index >= this.entries.length)
+        throw Error("Invalid history position");
+      this.cursor = index;
+      this.persist(this.entries[this.cursor].snapshot);
+      this.onUpdate(this.state());
+      return this.current();
+    }
     persist(snapshot = this.entries[this.cursor].snapshot) {
       try {
         this.storage.setItem(this.key, JSON.stringify({
