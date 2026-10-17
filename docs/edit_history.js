@@ -22,14 +22,20 @@
     constructor(config) {
       this.identity = clone(config.identity);
       this.key = PREFIX + String(config.key);
-      this.storage = config.storage === undefined ? global.localStorage : config.storage;
+      try {
+        this.storage = config.storage === undefined ? global.localStorage : config.storage;
+      } catch (_) {
+        // Safari privacy mode / denied site storage must not crash the editor.
+        this.storage = null;
+      }
       this.maxEntries = config.maxEntries || 40;
       this.onUpdate = config.onUpdate || (() => {});
       this.baseHash = hash(config.initial.segments);
       this.entries = [{snapshot: clone(config.initial), label: "開始", time: 0}];
       this.cursor = 0;
-      this.available = true;
-      this.lastError = "";
+      this.available = !!this.storage;
+      this.lastError = this.available ? "" :
+        "ブラウザの保存領域を利用できません。編集JSONを手動保存してください。";
       this.onUpdate(this.state());
     }
     state() {
