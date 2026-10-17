@@ -162,6 +162,30 @@
       viewport.setAttribute("aria-label", "拡大縮小できるタイムライン。左右へスクロール可能");
       track.parentNode.insertBefore(viewport, track);
       viewport.appendChild(track);
+      // Two-finger pinch scales only the timeline, not the source video.
+      let pinchDistance = 0;
+      let pinchZoom = 1;
+      const distance = touches => Math.hypot(
+        touches[0].clientX - touches[1].clientX,
+        touches[0].clientY - touches[1].clientY
+      );
+      viewport.addEventListener("touchstart", event => {
+        if (event.touches.length !== 2) return;
+        pinchDistance = distance(event.touches);
+        pinchZoom = zoom;
+      }, {passive: true});
+      viewport.addEventListener("touchmove", event => {
+        if (event.touches.length !== 2 || pinchDistance < 5) return;
+        event.preventDefault();
+        const targetZoom = pinchZoom * distance(event.touches) / pinchDistance;
+        const scales = [1, 2, 4, 8, 16];
+        const nearest = scales.reduce((a,b) =>
+          Math.abs(b-targetZoom) < Math.abs(a-targetZoom) ? b : a, 1);
+        if (nearest !== zoom) changeZoom(nearest);
+      }, {passive: false});
+      viewport.addEventListener("touchend", event => {
+        if (event.touches.length < 2) pinchDistance = 0;
+      }, {passive: true});
       const panel = document.createElement("div");
       panel.className = "zoom-panel";
       panel.innerHTML =
@@ -169,7 +193,7 @@
         '<button id="zoomOut" type="button" aria-label="縮小">−</button>' +
         '<span id="zoomLabel" class="zoom-label">1×</span>' +
         '<button id="zoomIn" type="button" aria-label="拡大">＋</button></div>' +
-        '<span class="zoom-help">拡大後は左右にスクロール</span>';
+        '<span class="zoom-help">2本指で拡大・左右にスクロール</span>';
       viewport.parentElement.insertBefore(panel, viewport);
       $("zoomOut").onclick = () => changeZoom(zoom / 2);
       $("zoomIn").onclick = () => changeZoom(zoom * 2);
