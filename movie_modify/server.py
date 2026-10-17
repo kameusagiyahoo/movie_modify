@@ -4,6 +4,7 @@ Run: python -m uvicorn movie_modify.server:app --host 127.0.0.1 --port 8000
 """
 from __future__ import annotations
 
+import gzip
 import hmac
 import importlib.util
 import json
@@ -13,6 +14,7 @@ import shutil
 import threading
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime, timezone
 from pathlib import Path
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, Response, UploadFile
@@ -43,6 +45,11 @@ app = FastAPI(title="Movie Modify", docs_url=None, redoc_url=None)
 
 class EditPayload(BaseModel):
     segments: list[dict]
+    expected_revision: int
+
+
+class RestoreRevisionPayload(BaseModel):
+    target_revision: int
     expected_revision: int
 
 
@@ -208,8 +215,37 @@ def _require_revision(project: dict, expected: int) -> None:
         })
 
 
+def _revision_folder(project_id: str) -> Path:
+    folder = _directory(project_id) / "edit_history"
+    folder.mkdir(mode=0o700, exist_ok=True)
+    return folder
+
+
+def _archive_edits(project: dict) -> None:
+    """Persist a compressed edit-only checkpoint before changing the EDL."""
+    folder = _revision_folder(project["id"])
+    filename = folder / f"{project['edit_revision']:010d}.json.gz"
+    if not filename.exists():
+        temporary = folder / ("history." + uuid.uuid4().hex + ".tmp")
+        try:
+            with gzip.open(temporary, "wt", encoding="utf-8") as stream:
+                json.dump({
+                    "revision": project["edit_revision"],
+                    "saved_at": datetime.now(timezone.utc).isoformat(),
+                    "segments": project["segments"],
+                }, stream, ensure_ascii=False)
+            temporary.replace(filename)
+        finally:
+            temporary.unlink(missing_ok=True)
+    # Preserve the last 30 checkpoints. Video bytes are never duplicated.
+    old = sorted(folder.glob("[0-9]*.json.gz"))
+    for entry in old[:-30]:
+        entry.unlink(missing_ok=True)
+
+
 def _commit_edits(project: dict, segments: list[dict]) -> dict:
     if segments != project["segments"]:
+        _archive_edits(project)
         project["segments"] = segments
         project["edit_revision"] += 1
         _save(project)
@@ -539,6 +575,47 @@ def save_edits(project_id: str, payload: EditPayload):
         except ValueError as exc:
             raise HTTPException(422, str(exc)) from exc
         return _commit_edits(project, normalized)
+
+
+@app.get("/api/projects/{project_id}/edit-history")
+def edit_history(project_id: str):
+    with PROJECT_LOCK:
+        current = _project(project_id)
+        folder = _revision_folder(project_id)
+        earlier = []
+        for file in sorted(folder.glob("[0-9]*.json.gz"), reverse=True):
+            try:
+                number = int(file.name.split(".")[0])
+                earlier.append({"revision": number, "archived": True,
+                                "saved_at": datetime.fromtimestamp(
+                                    file.stat().st_mtime, timezone.utc).isoformat()})
+            except (ValueError, OSError):
+                continue
+        return {"current_revision": current["edit_revision"], "revisions": [
+            {"revision": current["edit_revision"], "archived": False}
+        ] + earlier}
+
+
+@app.post("/api/projects/{project_id}/restore-revision")
+def restore_edit_revision(project_id: str, payload: RestoreRevisionPayload):
+    with PROJECT_LOCK:
+        current = _project(project_id)
+        _require_revision(current, payload.expected_revision)
+        if payload.target_revision < 0 or payload.target_revision >= current["edit_revision"]:
+            raise HTTPException(422, "Unknown edit revision")
+        path = _revision_folder(project_id) / f"{payload.target_revision:010d}.json.gz"
+        if not path.is_file():
+            raise HTTPException(404, "Edit revision no longer retained")
+        try:
+            with gzip.open(path, "rt", encoding="utf-8") as stream:
+                checkpoint = json.load(stream)
+            if checkpoint.get("revision") != payload.target_revision:
+                raise ValueError("Incorrect revision archive")
+            normalized = normalize_segments(checkpoint["segments"], current["duration"])
+        except (ValueError, KeyError, TypeError, OSError, EOFError) as exc:
+            raise HTTPException(409, "Archived edit data are invalid") from exc
+        result = _commit_edits(current, normalized)
+        return result
 
 
 @app.post("/api/projects/{project_id}/analyze")
