@@ -25,6 +25,7 @@ jobs:
           node --check web/live_preview.js
           node --check web/responsive_ui.js
           node --check docs/pages.js
+          node --check docs/edit_history.js
           node --check docs/bridge_client.js
           node --check docs/live_preview.js
 
@@ -52,4 +53,5 @@ jobs:
           node --check web/live_preview.js
           node --check web/responsive_ui.js
           node --check docs/pages.js
+          node --check docs/edit_history.js
           node --check docs/bridge_client.js
