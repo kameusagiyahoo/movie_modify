@@ -15,6 +15,33 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## R-02: automatic edit draft protection (Pages / Studio / advanced editor)
+
+Both the static Pages editor and Windows/Linux local web editor now support:
+
+- **Undo/Redo** for timeline cuts, splitting and view-angle/keyframe changes,
+  including browser-history selection of recent actions. Native tracking and
+  automatic-cut results are also recorded in the advanced editor.
+- **Browser-local automatic draft save** after each meaningful edit. The saved
+  draft contains the edit decision list and playhead/selection only; never
+  source movie bytes.
+- **Explicit restoration on reopen**. Pages requires the original video to be
+  selected again and checks its name, size, modification time, duration,
+  projection and resolution. The advanced editor also checks the saved
+  project's baseline and refuses to auto-apply outdated drafts.
+- **Protection against storage errors**. Users can still download a JSON copy.
+  The advanced editor offers JSON recovery for drafts that conflict with the
+  PC's current project state.
+
+History contains up to 40 snapshots in tab memory (the latest draft alone is
+persisted to `localStorage`). Browsers can clear local drafts; save a manual
+JSON backup for important work. **Local auto-save is not PC server auto-sync**:
+continue using the editor's Save / Studio Sync command when you want to persist
+edits on your Windows/Linux machine or move between devices. Full concurrent
+editing/version conflict protection remains future work (R-03).
+
+See the [canonical specification, section 7.5](docs/SPECIFICATION.md#75-編集履歴自動保存復元r-02).
+
 ## GitHub Pages → local PC handoff (Windows / Linux)
 
 The same browser editor can now be opened from the local processing server:
