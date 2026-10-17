@@ -21,7 +21,7 @@ from pydantic import BaseModel
 
 from .core import apply_suggestions, fresh_segment, normalize_segments
 from .media import (auto_editor_suggestions, available, create_proxy, inspect_video,
-                    panorama_frame, preview_frame, render, silence_suggestions)
+                    panorama_frame, preview_frame, render, silence_suggestions, create_panorama_proxy)
 from .tracking import track_panorama
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,6 +32,7 @@ PASSWORD = os.environ.get("MOVIE_MODIFY_TOKEN", "")
 # A single process and one heavy operation at a time protect memory / I/O usage.
 EXECUTOR = ThreadPoolExecutor(max_workers=1)
 JOBS: dict[str, dict] = {}
+PREVIEW_JOBS: dict[str, str] = {}
 JOB_LOCK = threading.Lock()
 app = FastAPI(title="Movie Modify", docs_url=None, redoc_url=None)
 
@@ -78,6 +79,12 @@ async def restrict_api(request: Request, call_next):
 @app.get("/", response_class=HTMLResponse)
 def homepage():
     return WEB.read_text(encoding="utf-8")
+
+
+@app.get("/assets/live_preview.js")
+def panorama_viewer_script():
+    """Serve client renderer locally; no CDN required."""
+    return FileResponse(ROOT / "web" / "live_preview.js", media_type="text/javascript")
 
 
 @app.post("/api/login")
@@ -216,6 +223,48 @@ def preview(project_id: str):
     if not path.is_file():
         raise HTTPException(409, "Proxy still processing")
     return FileResponse(path, media_type="video/mp4", filename="preview.mp4", content_disposition_type="inline")
+
+
+@app.post("/api/projects/{project_id}/prepare-preview360")
+def prepare_preview360(project_id: str):
+    """Build once; legacy projects receive their pano proxy on demand."""
+    project = _project(project_id)
+    if project["projection"] != "equirect":
+        raise HTTPException(400, "Panoramic playback requires equirectangular footage")
+    directory = _directory(project_id)
+    output = directory / "proxy360.mp4"
+    if output.is_file():
+        return {"ready": True}
+    with JOB_LOCK:
+        active_id = PREVIEW_JOBS.get(project_id)
+        if active_id and JOBS.get(active_id, {}).get("state") in ("queued", "running"):
+            return {"ready": False, "job_id": active_id}
+
+    def transcode(update):
+        temp = directory / "proxy360_work.mp4"
+        try:
+            create_panorama_proxy(directory / project["source_name"], temp)
+            temp.replace(output)
+            update(100)
+        finally:
+            temp.unlink(missing_ok=True)
+
+    result = _job(transcode)
+    with JOB_LOCK:
+        PREVIEW_JOBS[project_id] = result["job_id"]
+    return {"ready": False, **result}
+
+
+@app.get("/api/projects/{project_id}/preview360")
+def preview360(project_id: str):
+    project = _project(project_id)
+    if project["projection"] != "equirect":
+        raise HTTPException(400, "Not an equirectangular project")
+    output = _directory(project_id) / "proxy360.mp4"
+    if not output.is_file():
+        raise HTTPException(409, "Panoramic preview is not prepared yet")
+    return FileResponse(output, media_type="video/mp4",
+                        filename="preview360.mp4", content_disposition_type="inline")
 
 
 @app.get("/api/projects/{project_id}/frame")
