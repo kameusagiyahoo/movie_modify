@@ -100,9 +100,13 @@ The application passphrase is not HTTPS: unencrypted HTTP Wi-Fi traffic is
 not confidential. Use an HTTPS reverse proxy or private VPN for security.
 
 Note: Projects live on the host PC; connecting from iPhone operates that
-computer's storage and encoding engine. The GitHub Pages editor stores its
-browser-local edit data independently; syncing its edits with the local server
-has not been implemented yet.
+computer's storage and encoding engine. GitHub Pages uses browser-local edits;
+to hand them over, save JSON and navigate to the PC-served **/studio/**.
+Reselect the source and JSON, then explicitly authorize syncing the video
+and edits to the local server. This is a manual transfer, **not** automatic
+Pages-to-PC background synchronization. See
+[the canonical specification](SPECIFICATION.md) and
+[Pages ↔ PC workflow](bridge-workflow.md).
 
 ## Troubleshooting
 
