@@ -15,6 +15,34 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## R-03 / R-04: safe multi-device edits and resumable local transfer
+
+The Windows/Linux backend now stores an integer **edit_revision** with each
+project. Studio and the advanced editor must supply the last-read revision
+when saving edits or applying automated cut results. Stale updates are
+rejected with **HTTP 409 Conflict**, preserving the newer saved work.
+Automatic tracking jobs also verify the revision before applying their
+output. This prevents blind last-writer-wins overwrites when another browser
+or device edits the same project. It does not automatically merge edits.
+
+When transferring source video from the local Studio (including an iPhone
+connecting to your PC), the media is sent in **4 MiB chunks** with a progress
+bar and **Pause** action. Upload status is retained on PC disk: after
+reselecting the same source file, a transfer interrupted by Wi-Fi disconnection
+or browser refresh can resume from the verified byte offset. Idempotent
+retries do not append duplicate bytes. Server chunks are limited to 8 MiB,
+with a 50 GiB file cap; unused upload sessions expire after 24 hours.
+The source is transferred **only to the local PC**, and only after confirmation.
+
+**Important limits:** No automatic Pages→PC background connection, no conflict
+auto-merge, and no end-to-end encryption on local HTTP. iPhone Safari and
+very large real-world transfers still require hardware testing. A backend
+FFmpeg job itself does not resume after server restart; only the incoming
+upload bytes are persisted.
+
+See [the canonical specification](docs/SPECIFICATION.md) for the protocol
+and accepted limitations.
+
 ## R-02: automatic edit draft protection (Pages / Studio / advanced editor)
 
 Both the static Pages editor and Windows/Linux local web editor now support:
@@ -37,8 +65,8 @@ History contains up to 40 snapshots in tab memory (the latest draft alone is
 persisted to `localStorage`). Browsers can clear local drafts; save a manual
 JSON backup for important work. **Local auto-save is not PC server auto-sync**:
 continue using the editor's Save / Studio Sync command when you want to persist
-edits on your Windows/Linux machine or move between devices. Full concurrent
-editing/version conflict protection remains future work (R-03).
+edits on your Windows/Linux machine or move between devices. Stale-server-write protection is implemented in R-03; full automatic
+conflict merging is still future work.
 
 See the [canonical specification, section 7.5](docs/SPECIFICATION.md#75-編集履歴自動保存復元r-02).
 
@@ -259,7 +287,7 @@ timeline from either device.
 
 **Important:** Both clients connect to the *same local video project stored on
 your PC*. Moving from PC to iPhone is supported over the same network, but
-simultaneous editing in multiple browser tabs is not yet conflict-safe. Finish
+simultaneous editing now rejects stale server saves (HTTP 409), but no automatic merge is provided. Finish
 and save on one device before modifying the project on the other. Browser
 screen size controls the layout; you do not need to select a permanent mode.
 
