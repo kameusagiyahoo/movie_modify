@@ -57,7 +57,7 @@
       <div class="panel-heading"><h2>タイムライン</h2><div class="history-actions"><button id="editUndo" type="button" disabled aria-label="元に戻す">↶ 戻す</button><button id="editRedo" type="button" disabled aria-label="やり直す">↷ やり直す</button></div><div class="zoom"><button id="zoomOut" aria-label="縮小">−</button><span id="zoomText">1×</span><button id="zoomIn" aria-label="拡大">＋</button></div></div>
       <div class="ruler"><span>開始</span><span>青：追尾 / 緑：景色 / 赤：カット</span><span>終了</span></div>
       <div class="timeline-viewport" id="timelineViewport"><div class="timeline" id="timeline"></div></div>
-      <div class="muted small timeline-note">区間をタップ／クリックして選択。左右スワイプで移動、2本指で拡大できます。</div><div class="edit-safety" id="editSafety" role="status" aria-live="polite">編集内容はブラウザに自動保存されます。元動画は保存しません。</div>
+      <div class="muted small timeline-note">区間をタップ／クリックして選択。左右スワイプで移動、2本指で拡大できます。</div><div class="edit-safety" id="editSafety" role="status" aria-live="polite">編集内容はブラウザに自動保存されます。元動画は保存しません。</div><details class="edit-history-details"><summary>操作履歴を表示</summary><div id="editHistoryList" class="edit-history-list"></div></details>
       <div class="edit-actions"><button id="split" disabled>✂ 分割</button><button id="toggleKeep" disabled>カット指定</button><button id="scenery" disabled>景色へ切り替え</button></div>
       <div class="segment-meta"><strong id="selectionInfo">区間がありません</strong><span id="summaryInfo" class="small muted"></span></div>
       <div id="segmentList" class="segment-list"></div>
