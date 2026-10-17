@@ -5,6 +5,7 @@ Run: python -m uvicorn movie_modify.server:app --host 127.0.0.1 --port 8000
 from __future__ import annotations
 
 import hmac
+import importlib.util
 import json
 import os
 import re
@@ -20,7 +21,8 @@ from pydantic import BaseModel
 
 from .core import apply_suggestions, fresh_segment, normalize_segments
 from .media import (auto_editor_suggestions, available, create_proxy, inspect_video,
-                    preview_frame, render, silence_suggestions)
+                    panorama_frame, preview_frame, render, silence_suggestions)
+from .tracking import track_panorama
 
 ROOT = Path(__file__).resolve().parent.parent
 STORAGE = Path(os.environ.get("MOVIE_MODIFY_DATA", str(ROOT / "data"))).expanduser().resolve()
@@ -50,6 +52,13 @@ class ApplyPayload(BaseModel):
 
 class RenderPayload(BaseModel):
     size: str = "720p"
+
+
+class TrackPayload(BaseModel):
+    segment_index: int
+    x: float
+    y: float
+    box: float = 0.10
 
 
 class LoginPayload(BaseModel):
@@ -82,7 +91,8 @@ def login(payload: LoginPayload, response: Response):
 @app.get("/api/health")
 def health():
     return {"ffmpeg": available("ffmpeg"), "ffprobe": available("ffprobe"),
-            "auto_editor": available("auto-editor"), "auth_required": bool(PASSWORD),
+            "auto_editor": available("auto-editor"),
+            "tracking": importlib.util.find_spec("cv2") is not None, "auth_required": bool(PASSWORD),
             "storage": str(STORAGE)}
 
 
@@ -219,6 +229,55 @@ def frame(project_id: str, time: float = 0, yaw: float = 0, pitch: float = 0, fo
     except Exception as exc:
         raise HTTPException(500, str(exc)[-300:]) from exc
     return Response(data, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
+
+
+@app.get("/api/projects/{project_id}/panorama")
+def panorama(project_id: str, time: float = 0):
+    project = _project(project_id)
+    if project["projection"] != "equirect":
+        raise HTTPException(422, "360 panorama only")
+    if not 0 <= time < project["duration"]:
+        raise HTTPException(400, "Invalid source time")
+    try:
+        data = panorama_frame(_directory(project_id) / project["source_name"], time)
+    except Exception as exc:
+        raise HTTPException(500, str(exc)[-300:]) from exc
+    return Response(data, media_type="image/jpeg", headers={"Cache-Control": "no-store"})
+
+
+@app.post("/api/projects/{project_id}/track")
+def track(project_id: str, payload: TrackPayload):
+    project = _project(project_id)
+    if project["projection"] != "equirect":
+        raise HTTPException(422, "Tracking requires stitched 360 footage")
+    if importlib.util.find_spec("cv2") is None:
+        raise HTTPException(503, "pip install -r requirements-tracking.txt")
+    if not 0 <= payload.segment_index < len(project["segments"]):
+        raise HTTPException(422, "Unknown segment")
+    segment = project["segments"][payload.segment_index]
+    if not segment["keep"]:
+        raise HTTPException(422, "Cannot track removed interval")
+    if not 0 <= payload.x <= 1 or not .02 <= payload.y <= .98 or not .04 <= payload.box <= .24:
+        raise HTTPException(422, "Invalid target")
+    if segment["end"] - segment["start"] > 1200:
+        raise HTTPException(422, "Split into segments of 20 minutes or less")
+    path = _directory(project_id) / project["source_name"]
+
+    def work(update):
+        keys, warning = track_panorama(path, segment["start"], segment["end"],
+                                       payload.x, payload.y, payload.box, callback=update)
+        latest = _project(project_id)
+        if payload.segment_index >= len(latest["segments"]):
+            raise RuntimeError("Timeline changed during tracking")
+        candidate = latest["segments"][payload.segment_index]
+        if (candidate["start"], candidate["end"]) != (segment["start"], segment["end"]):
+            raise RuntimeError("Timeline changed during tracking")
+        candidate.update(mode="follow", keyframes=keys, tracking_warning=warning)
+        latest["segments"] = normalize_segments(latest["segments"], latest["duration"])
+        _save(latest)
+        update(100)
+    return _job(work)
 
 
 @app.put("/api/projects/{project_id}/edits")
