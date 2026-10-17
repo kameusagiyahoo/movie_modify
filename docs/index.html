@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="color-scheme" content="dark">
+  <title>Movie Modify — ブラウザ編集</title>
+  <meta name="description" content="動画を外部へ送信せず、スマホとPCで編集できるMovie Modify Pages版。">
+  <link rel="stylesheet" href="./pages.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand"><div class="mark">M</div><div><strong>Movie Modify</strong><small>ブラウザ内で動画編集 · Pages版</small></div></div>
+  <div class="top-actions"><span class="local-pill">端末内処理</span><button id="openFile" class="subtle">素材を開く</button></div>
+</header>
+<div class="app-layout">
+  <aside class="sidebar" id="sidebar">
+    <section class="panel">
+      <div class="panel-heading"><h2>素材を読み込む</h2><button id="closeLibrary" class="subtle mobile-library">閉じる</button></div>
+      <p class="muted">動画はブラウザ内で開きます。外部サーバーにはアップロードしません。</p>
+      <label class="input-label" for="fileInput">動画ファイル</label>
+      <input id="fileInput" type="file" accept="video/*,.mp4,.mov,.m4v,.webm,.mkv">
+      <label class="input-label" for="projection">撮影形式</label>
+      <select id="projection"><option value="flat">通常動画（スマホ等）</option><option value="equirect">360度動画（2:1 MP4）</option></select>
+      <p class="small muted">.insvや.360のようなメーカー専用形式は、公式アプリで360度MP4に変換してください。</p>
+      <div class="info-grid"><div><span>動画名</span><strong id="fileName">未選択</strong></div><div><span>長さ</span><strong id="durationText">--:--</strong></div></div>
+    </section>
+    <section class="panel">
+      <h2>編集プロジェクト</h2>
+      <p class="muted">元動画は変更しません。編集内容はJSONとして保存・読込できます。再開時は動画の再選択が必要です。</p>
+      <div class="stack-actions"><button id="saveJson" disabled>編集内容をJSON保存</button><label class="file-button" for="projectInput">JSONを読み込む<input id="projectInput" type="file" accept=".json,application/json"></label></div>
+      <p class="small muted">ローカル版で作成した <code>project.json</code> の <code>segments</code> も読み込めます。</p>
+    </section>
+    <section class="panel desktop-info">
+      <h2>処理方式</h2>
+      <p class="muted">PagesではPython・FFmpeg・OpenCVを実行できません。人物の自動追尾やAuto-Editorによるカット解析、確実な高画質書き出しはUbuntuのローカル版をご利用ください。</p>
+      <a href="https://github.com/kameusagiyahoo/movie_modify" rel="noopener noreferrer" target="_blank">GitHub / ローカル版の手順 ↗</a>
+    </section>
+  </aside>
+  <main class="workspace">
+    <section class="viewer panel">
+      <div class="viewer-heading"><div><h1 id="projectTitle">編集する動画を選択</h1><p id="videoInfo" class="small muted">通常動画・360度MP4の両方に対応</p></div><button class="subtle mobile-library" id="toggleLibrary">素材 / JSON</button></div>
+      <div class="player-surface" id="playerSurface">
+        <div class="empty-state" id="emptyState"><div class="play-circle">▶</div><p>動画を開くとプレビューが表示されます</p></div>
+        <video id="sourceVideo" playsinline preload="metadata" crossorigin="anonymous"></video>
+        <canvas id="previewCanvas" width="960" height="540"></canvas>
+      </div>
+      <div class="playback">
+        <button id="playPause" class="primary" disabled>▶ 再生</button>
+        <span id="currentTime" class="clock">00:00</span><input id="seek" type="range" value="0" step="0.05" min="0" max="1" disabled aria-label="再生位置">
+        <span id="totalTime" class="clock">00:00</span>
+      </div>
+      <div class="playback-options"><label><input id="skipCuts" type="checkbox" checked> カット区間を飛ばす</label><span id="viewerMode" class="small muted">通常動画</span></div>
+    </section>
+    <nav class="mobile-tabs" aria-label="編集機能" id="mobileTabs"><button data-tab="timeline" class="active">タイムライン</button><button data-tab="camera">画角</button><button data-tab="output">保存・出力</button></nav>
+    <section class="panel timeline-panel" data-panel="timeline">
+      <div class="panel-heading"><h2>タイムライン</h2><div class="zoom"><button id="zoomOut" aria-label="縮小">−</button><span id="zoomText">1×</span><button id="zoomIn" aria-label="拡大">＋</button></div></div>
+      <div class="ruler"><span>開始</span><span>青：追尾 / 緑：景色 / 赤：カット</span><span>終了</span></div>
+      <div class="timeline-viewport" id="timelineViewport"><div class="timeline" id="timeline"></div></div>
+      <div class="muted small timeline-note">区間をタップ／クリックして選択。左右スワイプで移動、2本指で拡大できます。</div>
+      <div class="edit-actions"><button id="split" disabled>✂ 分割</button><button id="toggleKeep" disabled>カット指定</button><button id="scenery" disabled>景色へ切り替え</button></div>
+      <div class="segment-meta"><strong id="selectionInfo">区間がありません</strong><span id="summaryInfo" class="small muted"></span></div>
+      <div id="segmentList" class="segment-list"></div>
+    </section>
+  </main>
+  <aside class="inspector">
+    <section class="panel camera-panel" data-panel="camera">
+      <div class="panel-heading"><h2>360度の画角編集</h2><span class="chip" id="angleChip">通常動画では無効</span></div>
+      <p class="small muted">景色の方向を左右・上下で指定できます。キーを追加すると、前の画角から滑らかに移動します。</p>
+      <div class="field"><label for="yaw">左右 <output id="yawLabel">0°</output></label><input id="yaw" type="range" min="-180" max="180" step="1" value="0" disabled></div>
+      <div class="field"><label for="pitch">上下 <output id="pitchLabel">0°</output></label><input id="pitch" type="range" min="-85" max="85" step="1" value="0" disabled></div>
+      <div class="field"><label for="fov">画角 <output id="fovLabel">90°</output></label><input id="fov" type="range" min="40" max="130" step="1" value="90" disabled></div>
+      <div class="stack-actions"><button id="setKey" disabled>現在位置に画角キー追加</button><button id="resetView" disabled>選択区間の画角をリセット</button></div>
+      <p class="small muted">人物の自動追尾キーが入った編集JSONも再生できます。ブラウザだけで新しい人物を自動追跡する機能はありません。</p>
+    </section>
+    <section class="panel output-panel" data-panel="output">
+      <h2>出力</h2><p class="small muted">ファイルは外部へ送信しません。</p>
+      <div class="stack-actions"><button id="exportVideo" class="primary" disabled>編集動画を書き出す（試験機能）</button><button id="saveJsonBottom" disabled>編集内容をJSON保存</button></div>
+      <p id="exportSupport" class="small muted">ブラウザの動画録画対応を確認中です。</p>
+      <p class="small muted">ブラウザのMediaRecorderを使用し、実時間で録画します。形式・音声の収録・解像度はブラウザに依存します。長尺・高画質・確実な書き出しにはPCのローカル版が適しています。</p>
+      <a id="downloadVideo" class="download hidden" download>完成動画を保存</a>
+    </section>
+    <section class="panel">
+      <h2>できること / できないこと</h2>
+      <div class="feature-row"><span>通常動画を編集</span><b>対応</b></div><div class="feature-row"><span>360度の画角を編集・連続プレビュー</span><b>対応</b></div><div class="feature-row"><span>編集JSONの保存・読込</span><b>対応</b></div><div class="feature-row"><span>人物の自動追跡</span><b class="limited">PC版のみ</b></div><div class="feature-row"><span>Auto-Editor自動カット</span><b class="limited">PC版のみ</b></div>
+    </section>
+  </aside>
+</div>
+<footer class="mobile-actions" id="mobileActions"><button data-action="split">分割</button><button data-action="cut">残す／カット</button><button data-action="scenery">景色</button><button data-action="save" class="primary">JSON保存</button></footer>
+<div id="status" class="status hidden" role="status"></div>
+<script src="./live_preview.js"></script>
+<script src="./pages.js" defer></script>
+</body>
+</html>
