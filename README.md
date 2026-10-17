@@ -144,3 +144,34 @@ the FFmpeg high-quality final render; minor differences are possible.
 Browser decoding and WebGL performance vary, especially with older iPhones.
 Source audio follows the selected time; there is no crossfade at cut points.
 Trackers may drift when a person is obstructed, so inspect those intervals.
+
+
+## Editing UI — iPhone and desktop with one shared project
+
+The same locally hosted Web UI adapts to the screen, **without duplicating the
+editing engine or storing separate phone/desktop timelines**:
+
+| | iPhone / narrow browser (up to 900px) | Desktop / wide browser |
+|---|---|---|
+| Main view | Sticky video preview and large touch targets | Two-column workspace: preview + timeline, with review/export tools beside it |
+| Editing tools | Tabs: タイムライン / 自動カット / 書き出す | Tools visible concurrently |
+| Fast actions | Bottom bar: 分割 / 景色 (or 自動カット for flat footage) / 残す・カット / 保存 | Editing toolbar and keyboard shortcuts |
+| Timeline | Pinch with two fingers or press +/- to zoom; swipe horizontally | +/- zoom, horizontal mouse/trackpad scrolling, click-to-seek |
+| Asset library | Open the 素材・履歴 drawer | Always visible left sidebar |
+
+**Keyboard shortcuts on desktop** (when not typing in a form field):
+Space to play/pause, \`S\` to split at the playhead, and left/right arrow to
+seek 5 seconds. Edits are still saved with the **保存** action (not silently
+autosaved). Existing person-follow and scenery keyframes use the same source
+timeline from either device.
+
+**Important:** Both clients connect to the *same local video project stored on
+your PC*. Moving from PC to iPhone is supported over the same network, but
+simultaneous editing in multiple browser tabs is not yet conflict-safe. Finish
+and save on one device before modifying the project on the other. Browser
+screen size controls the layout; you do not need to select a permanent mode.
+
+The responsive UI is split into \`web/responsive_ui.css\` and
+\`web/responsive_ui.js\`. These are served locally at \`/assets/\` (no external
+UI CDN), while \`movie_modify/core.py\` and the render pipeline remain
+unchanged. In particular, the ordinary smartphone-video workflow is preserved.
