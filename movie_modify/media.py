@@ -171,3 +171,19 @@ def render(source: Path, dest: Path, projection: str, segments: list[dict], *, s
             callback(100)
     finally:
         shutil.rmtree(work, ignore_errors=True)
+
+
+def create_panorama_proxy(source: Path, dest: Path) -> None:
+    """Make an *unprojected* lightweight 2:1 browser video.
+
+    Unlike create_proxy(), this keeps all directions available to the live
+    WebGL camera. The source media is never uploaded outside this computer.
+    """
+    run([
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-i", str(source), "-map", "0:v:0", "-map", "0:a:0?",
+        "-vf", "scale=1280:640:flags=bicubic,setsar=1,fps=24,format=yuv420p",
+        "-c:v", "libx264", "-preset", "veryfast", "-crf", "29",
+        "-threads", "2", "-c:a", "aac", "-b:a", "96k",
+        "-movflags", "+faststart", str(dest),
+    ], timeout=21600)
