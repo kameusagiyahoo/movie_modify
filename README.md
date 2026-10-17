@@ -13,6 +13,43 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## Run locally on Windows **or** Linux
+
+The same FastAPI/FFmpeg/OpenCV backend and responsive browser UI run on both
+operating systems. Python 3.11+, FFmpeg and FFprobe are required. The default
+server binds to **127.0.0.1 only**; use `--lan` plus a long
+`MOVIE_MODIFY_TOKEN` when operating it from an iPhone on a private Wi-Fi.
+
+**Windows 10/11** (PowerShell or Command Prompt):
+
+```powershell
+winget install --id Gyan.FFmpeg -e
+# Restart your terminal so the ffmpeg command is recognized.
+.\scripts\start-windows.cmd
+```
+
+**Linux (Ubuntu)**:
+
+```bash
+sudo apt install -y ffmpeg python3-venv
+bash scripts/start-linux.sh
+```
+
+Both launchers set up a Python virtual environment on first run. Open
+`http://127.0.0.1:8000` in your browser. For an iPhone on the same LAN,
+start with the access token and `--lan` as described in
+[Windows/Linux deployment](docs/windows-linux.md).
+
+You can also run `python -m movie_modify --port 8000` from an activated
+environment. The `--data-dir` option supports storage on Windows drives or
+Linux mount points.
+
+**GitHub Pages is separate.** It runs static browser-side editing in `docs/`
+without a local PC, but cannot invoke the native FFmpeg/OpenCV backend.
+The local server provides the full analysis/tracking/high-quality rendering
+features. Automatic syncing between Pages and the local server is not yet
+implemented.
+
 ## Quick start (Ubuntu / Linux)
 
 Install Python 3.10+ and FFmpeg:
