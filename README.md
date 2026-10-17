@@ -175,3 +175,13 @@ The responsive UI is split into \`web/responsive_ui.css\` and
 \`web/responsive_ui.js\`. These are served locally at \`/assets/\` (no external
 UI CDN), while \`movie_modify/core.py\` and the render pipeline remain
 unchanged. In particular, the ordinary smartphone-video workflow is preserved.
+
+## GitHub Pages（ブラウザで動く編集アプリ）
+
+`docs/` に静的な動画編集アプリを追加しました。iPhone・PCで通常動画の分割やカット指定、変換済み360度MP4の画角キーフレーム編集・連続プレビュー、編集JSONの保存・読込ができます。選んだ動画ファイルをサーバーへ送信せず、ブラウザ内で処理します。
+
+**公開設定:** GitHubの **Settings → Pages → Deploy from a branch → main /docs → Save** を選んでください。すでに `main /(root)` を指定している場合はトップページから `docs/` へ移動します。
+
+**制限:** PagesではPython・Auto-Editor・OpenCV・FFmpegを実行できません。新しい人物の自動追尾、自動カット解析、安定した高品質書き出しにはローカル版を利用します。MediaRecorder対応ブラウザに限り等倍速での試験的書き出しを利用できますが、音声・形式・性能はブラウザ依存です。プライベートな動画を公開GitHubリポジトリに置かないでください。
+
+[アプリ](docs/index.html)／[説明・公開手順](docs/README.md)
