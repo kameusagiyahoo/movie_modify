@@ -2,7 +2,7 @@ const {test, expect} = require('@playwright/test');
 const path = require('node:path');
 const fs = require('node:fs');
 
-const fixture = path.resolve(__dirname, 'fixture.mp4');
+const fixture = path.resolve(__dirname, 'fixture.webm');
 const PAGES = 'http://127.0.0.1:8877/';
 const LOCAL = 'http://127.0.0.1:8878/';
 
@@ -65,7 +65,7 @@ test('iPhone-width Pages: editor tool selection and history accessible', async (
 test('local native: revision conflict refuses stale browser write', async ({page, request})=>{
   const upload=await request.post(LOCAL+'api/projects',{
     multipart:{
-      file:{name:'fixture.mp4',mimeType:'video/mp4',buffer:fs.readFileSync(fixture)},
+      file:{name:'fixture.mp4',mimeType:'video/webm',buffer:fs.readFileSync(fixture)},
       projection:'flat',
     }
   });
