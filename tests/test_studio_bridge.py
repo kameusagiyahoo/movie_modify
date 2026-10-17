@@ -42,8 +42,11 @@ def test_browser_bridge_requires_explicit_consent_and_one_origin():
     html=(root/"docs/index.html").read_text(encoding="utf-8")
     assert 'window.confirm(message)' in js
     assert 'location.assign(dest)' in js
-    assert '"/api/projects"' in js
-    assert '"POST",body:data' in js
+    assert '"/api/uploads"' in js
+    assert '"/chunk?offset="' in js
+    assert '"/complete"' in js
+    assert "transferIdentity" in js
+    assert "expected_revision:lastServerRevision" in js
     assert 'credentials:"same-origin"' in js
     assert "MovieModifyPagesBridge" in pages
     assert "bridgeSync" in html and "bridgeSaveFirst" in html
