@@ -16,8 +16,10 @@ from pathlib import Path
 from .core import camera_at, merge_intervals, parse_auto_editor_v1
 
 
-def run(args: list[str], *, timeout: int = 7200) -> subprocess.CompletedProcess:
-    result = subprocess.run(args, capture_output=True, text=True, timeout=timeout)
+def run(args: list[str], *, timeout: int = 7200, cwd: Path | None = None) -> subprocess.CompletedProcess:
+    """Run an external tool without a shell, on Windows or Linux."""
+    result = subprocess.run(args, capture_output=True, text=True, encoding="utf-8",
+                            errors="replace", timeout=timeout, cwd=cwd)
     if result.returncode:
         raise RuntimeError((result.stderr or result.stdout)[-2200:] or f"Command failed: {args[0]}")
     return result
@@ -96,7 +98,10 @@ def animated_filter(segment: dict, file: Path, width: int, height: int) -> str:
             commands.append(f"{at-start:.4f} v360@view {key} {value:.4f};")
     file.write_text("\n".join(commands) + "\n", encoding="utf-8")
     first = camera_at(segment, start)
-    return (f"fps=30,sendcmd=f='{file}'," + 
+    # Only the filename appears in FFmpeg's filtergraph. Drive letters,
+    # backslashes, spaces and apostrophes in a Windows directory must NOT
+    # be parsed by the sendcmd filter. FFmpeg runs with cwd=file.parent.
+    return (f"fps=30,sendcmd=f='{file.name}'," + 
             view_filter(first["yaw"], first["pitch"], first["fov"], name="@view") +
             f",scale={width}:{height}:force_original_aspect_ratio=decrease," +
             f"pad={width}:{height}:(ow-iw)/2:(oh-ih)/2,setsar=1,format=yuv420p")
@@ -107,7 +112,8 @@ def silence_suggestions(source: Path, duration: float, has_audio: bool, noise_db
         return []
     cmd = ["ffmpeg", "-hide_banner", "-nostats", "-i", str(source), "-vn", "-af",
            f"silencedetect=noise={noise_db}dB:d={min_seconds}", "-f", "null", "-"]
-    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=21600)
+    proc = subprocess.run(cmd, capture_output=True, text=True,
+                          encoding="utf-8", errors="replace", timeout=21600)
     if proc.returncode:
         raise RuntimeError(proc.stderr[-1200:])
     starts = re.findall(r"silence_start:\s*([0-9.]+)", proc.stderr)
@@ -136,6 +142,8 @@ def render(source: Path, dest: Path, projection: str, segments: list[dict], *, s
     Moving 360 camera trajectories are rendered via FFmpeg v360 commands.
     """
     resolution = {"720p": (1280, 720), "1080p": (1920, 1080)}[size]
+    source = source.resolve()
+    dest = dest.resolve()
     kept = [s for s in segments if s["keep"]]
     if not kept:
         raise ValueError("All segments are cut")
@@ -159,14 +167,18 @@ def render(source: Path, dest: Path, projection: str, segments: list[dict], *, s
             else:
                 cmd += ["-an"]
             cmd += ["-movflags", "+faststart", str(out)]
-            run(cmd, timeout=21600)
+            # cwd keeps FFmpeg's sendcmd file reference platform-neutral.
+            run(cmd, timeout=21600, cwd=work)
             parts.append(out)
             if callback:
                 callback(int(90 * (index + 1) / len(kept)))
         concat_file = work / "files.txt"
-        concat_file.write_text("".join(f"file '{str(p)}'\n" for p in parts), encoding="utf-8")
+        # The file list contains only generated ASCII basenames. This avoids
+        # ffconcat escaping for Windows drive letters or user folder names.
+        concat_file.write_text("".join(f"file '{p.name}'\n" for p in parts), encoding="utf-8")
         run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-f", "concat", "-safe", "0",
-             "-i", str(concat_file), "-c", "copy", "-movflags", "+faststart", str(dest)], timeout=21600)
+             "-i", concat_file.name, "-c", "copy", "-movflags", "+faststart", str(dest)],
+            timeout=21600, cwd=work)
         if callback:
             callback(100)
     finally:
