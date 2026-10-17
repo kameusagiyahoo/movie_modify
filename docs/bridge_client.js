@@ -11,6 +11,9 @@
   let lastServerSegments = null;
   let lastServerRevision = null;
   let busy = false;
+  let transferPaused = false;
+  let activeController = null;
+  const UPLOAD_KEY="movie-modify-resumable-upload-v1";
   const REMEMBER_KEY = "movie-modify-native-project";
   function remembered() {
     try { return JSON.parse(sessionStorage.getItem(REMEMBER_KEY) || "null"); }
@@ -19,12 +22,12 @@
   function remember() {
     const snap=state();
     if(!snap?.file || !serverProjectId)return;
-    sessionStorage.setItem(REMEMBER_KEY, JSON.stringify({
+    try{sessionStorage.setItem(REMEMBER_KEY, JSON.stringify({
       id:serverProjectId, name:snap.file.name, size:snap.file.size,
       modified:snap.file.lastModified, projection:snap.projection,
       duration:snap.duration, baseline:lastServerSegments,
       revision:lastServerRevision
-    }));
+    }));}catch(_err){ /* Restricted browser storage: manual sync still works. */ }
   }
 
   const editor = () => window.MovieModifyPagesBridge;
@@ -49,7 +52,8 @@
       throw Error("PCのアクセス認証が必要です。下のパスフレーズを入力してください。");
     }
     const data=await response.json().catch(()=>({}));
-    if(!response.ok)throw Error(data.detail||"HTTP "+response.status);
+    if(!response.ok)throw Error(typeof data.detail==="string" ? data.detail :
+      (data.detail?.message||"HTTP "+response.status));
     return data;
   }
   async function waitJob(id, label) {
@@ -63,6 +67,84 @@
     }
     throw Error(label+"の状態確認がタイムアウトしました");
   }
+
+  function transferIdentity(file, projection) {
+    return JSON.stringify({name:file.name,size:file.size,
+      modified:file.lastModified,projection});
+  }
+  function readSession() {
+    try {return JSON.parse(sessionStorage.getItem(UPLOAD_KEY)||"null");}
+    catch(_err){return null;}
+  }
+  function saveSession(value) {
+    try{sessionStorage.setItem(UPLOAD_KEY,JSON.stringify(value));}
+    catch(_err){say("端末の保存領域が無効です。通信切断後の再開には同じ画面が必要です。",true);}
+  }
+  function forgetSession() {
+    try{sessionStorage.removeItem(UPLOAD_KEY);}catch(_err){}
+  }
+  function showTransferProgress(done,total) {
+    const percent=Math.min(100,Math.floor(done/total*1000)/10);
+    const bar=$("bridgeProgress");
+    if(bar){bar.hidden=false;bar.value=percent;}
+    const size=x=>(x/1024**2).toFixed(1)+" MiB";
+    say("ローカルPCへ転送中： "+percent.toFixed(1)+"%（"+size(done)+" / "+size(total)+"）");
+  }
+  async function sendChunks(file, projection) {
+    const identity=transferIdentity(file,projection);
+    const previous=readSession();
+    let session=null;
+    if(previous?.identity===identity && previous.id){
+      try {
+        const saved=await api("/api/uploads/"+previous.id);
+        if(saved.size===file.size && saved.filename===file.name &&
+           saved.projection===projection && saved.last_modified===file.lastModified)
+          session=saved;
+      }catch(_err){ /* Expired session: create a new one. */ }
+    }
+    if(!session){
+      session=await api("/api/uploads",payload({filename:file.name,size:file.size,
+        projection,last_modified:file.lastModified}));
+      saveSession({identity,id:session.id});
+    }
+    let offset=session.received;
+    const chunkSize=4*1024*1024;
+    transferPaused=false;
+    $("bridgePause").hidden=false;
+    try{
+      for(let failures=0; offset<file.size;){
+        if(transferPaused)throw Error("転送を一時停止しました。後で同じ動画を選んで同期すれば続きから再開できます。");
+        showTransferProgress(offset,file.size);
+        const end=Math.min(file.size,offset+chunkSize);
+        const part=file.slice(offset,end);
+        activeController=new AbortController();
+        try {
+          const accepted=await api("/api/uploads/"+session.id+"/chunk?offset="+offset,{
+            method:"PUT",headers:{"Content-Type":"application/octet-stream"},
+            body:part,signal:activeController.signal
+          });
+          offset=accepted.received;
+          failures=0;
+        }catch(error){
+          if(transferPaused)throw Error("転送を一時停止しました。再度「PCに同期」で再開できます。");
+          // The response may have been lost after the chunk was stored.
+          const check=await api("/api/uploads/"+session.id);
+          offset=check.received;
+          failures++;
+          if(failures>3)throw Error("転送が中断しました。通信状態を確認してもう一度「PCに同期」を押してください。");
+          await new Promise(resolve=>setTimeout(resolve,Math.min(2500,failures*500)));
+        }finally{activeController=null;}
+      }
+      showTransferProgress(file.size,file.size);
+      const done=await api("/api/uploads/"+session.id+"/complete",{method:"POST"});
+      forgetSession();
+      return done;
+    }finally{
+      $("bridgePause").hidden=true;
+      activeController=null;
+    }
+  }
+
   async function confirmProject() {
     const snapshot=state();
     if(!snapshot?.ready || !snapshot.file) {
@@ -88,11 +170,7 @@
         (sizeGiB>2?"大きい動画のため、Wi-Fi通信や端末のメモリに注意してください。\n":"")+
         "処理を続けますか？";
       if(!window.confirm(message))throw Error("動画の転送をキャンセルしました。");
-      const data=new FormData();
-      data.append("file",snapshot.file,snapshot.file.name);
-      data.append("projection",snapshot.projection);
-      say("元動画をローカルPCへ送信中…");
-      const created=await api("/api/projects",{method:"POST",body:data});
+      const created=await sendChunks(snapshot.file,snapshot.projection);
       serverProjectId=created.project.id;
       lastServerRevision=created.project.edit_revision;
       remember();
@@ -178,6 +256,11 @@
     $("bridgeBadge").textContent=native?"PCエンジン接続モード":"ブラウザ単独モード";
     if(native) {
       $("bridgeSync").onclick=()=>action(confirmProject);
+      $("bridgePause").onclick=()=>{
+        transferPaused=true;
+        activeController?.abort();
+        say("転送を一時停止しています…");
+      };
       $("bridgeExport").onclick=()=>action(nativeRender);
       $("bridgeOpenEditor").onclick=()=>action(async()=>{
         const id=await confirmProject();
