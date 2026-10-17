@@ -178,6 +178,7 @@ function initializeEditHistory(){
  editHistory=new MovieModifyEditHistory.EditHistory({
   key:'native:'+current.id,identity,initial:historySnapshot(),onUpdate:historyControls
  });
+ historyControls(editHistory.state());
  const candidate=editHistory.candidate();
  if(candidate.status==='available'){
   if(confirm('このプロジェクトの自動保存下書きがあります。復元しますか？\n復元してもPC側の保存内容は上書きしません。')){
@@ -192,7 +193,6 @@ function initializeEditHistory(){
  }else if(candidate.status==='invalid'){
   alertMsg('保存済みの下書きを検証できませんでした。',true);
  }
- historyControls(editHistory.state());
 }
 document.addEventListener('keydown',ev=>{
  if(!current||!editHistory||!((ev.ctrlKey||ev.metaKey)&&!ev.altKey))return;
