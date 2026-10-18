@@ -71,6 +71,7 @@ function drawEditor(){if(!current)return;disposeLive();const p=current;let ready
 <section class="panel"><div class="sectionhead"><h2>05 / 動画を書き出す</h2><span class="badge">FFmpeg</span></div><div class="row"><div class="formfield"><label>出力解像度</label><select id="outputSize"><option value="720p">720p（軽量）</option><option value="1080p">1080p（高画質）</option></select></div><button id="render" class="primary">MP4を生成</button><a id="download" href="/api/projects/${p.id}/export" style="display:none;color:#60dfc6">完成動画をダウンロード</a></div><p class="description" style="margin-top:12px">選択した区間のみ出力します。360°素材は区間ごとに指定した向きを16:9へ変換します。元動画は変更されません。</p><div id="jobStatus" class="status hidden" style="margin-top:11px"></div></section>
 <section class="panel" id="benchmarkPanel"><div class="sectionhead"><h2>06 / 追尾の定量評価</h2><span class="badge">合成360°</span></div>
 <p class="description">正解位置が分かる合成動画で、現在のOpenCV追尾の性能を測定します。個人の動画を使わず、テスト映像は処理後に削除します。</p>
+<p class="hint">素材を読み込まずに評価するときは <a href="/benchmark" style="color:#60dfc6">独立したベンチマーク画面 ↗</a> を開いてください。</p>
 <div class="row benchmark-actions"><button class="primary" id="benchmarkRun" type="button">4条件で評価を実行</button><button id="benchmarkRefresh" type="button">結果を更新</button>
 <button id="benchmarkDownload" type="button" disabled>結果JSONを保存</button></div>
 <div class="hint" id="benchmarkStatus" role="status" aria-live="polite">前回の測定結果を読み込みます。</div>
