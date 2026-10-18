@@ -15,7 +15,7 @@ def clamp(value: float, low: float, high: float) -> float:
 def fresh_segment(start: float, end: float, *, suggested: bool = False) -> dict:
     return {"start": round(start, 3), "end": round(end, 3), "keep": True,
             "yaw": 0.0, "pitch": 0.0, "fov": 90.0, "mode": "manual",
-            "keyframes": [], "suggested": suggested}
+            "keyframes": [], "tracking_gaps": [], "suggested": suggested}
 
 
 def normalize_segments(segments: list[dict], duration: float) -> list[dict]:
@@ -65,9 +65,27 @@ def normalize_segments(segments: list[dict], duration: float) -> list[dict]:
                 raise ValueError("Out-of-range keyframe")
             last_time = values["time"]
             keys.append({k: round(v, 4) for k, v in values.items()})
+        raw_gaps = item.get("tracking_gaps", [])
+        if not isinstance(raw_gaps, list) or len(raw_gaps) > 5000:
+            raise ValueError("Invalid tracking gap list")
+        gaps = []
+        last_gap_end = start
+        for gap in raw_gaps:
+            if not isinstance(gap, dict):
+                raise ValueError("Invalid tracking gap")
+            try:
+                a, b = float(gap["start"]), float(gap["end"])
+            except (TypeError, KeyError, ValueError) as exc:
+                raise ValueError("Invalid tracking gap") from exc
+            if not all(map(math.isfinite, (a, b))) or a < start - .002 or b > end + .002 or (
+                a < last_gap_end - .002 or b <= a
+            ):
+                raise ValueError("Tracking gaps must be ordered and inside segment")
+            gaps.append({"start": round(max(start, a), 3), "end": round(min(end, b), 3)})
+            last_gap_end = b
         result.append({"start": round(max(0, start), 3), "end": round(min(end, duration), 3),
                        "keep": item.get("keep", True), "yaw": yaw, "pitch": pitch,
-                       "fov": fov, "mode": mode, "keyframes": keys,
+                       "fov": fov, "mode": mode, "keyframes": keys, "tracking_gaps": gaps,
                        "tracking_warning": str(item.get("tracking_warning", ""))[:250],
                        "suggested": bool(item.get("suggested", False))})
         last_end = end
@@ -106,6 +124,12 @@ def slice_segment(segment: dict, start: float, end: float) -> dict:
         part["keyframes"] = [{"time": round(t, 4), **camera_at(segment, t)} for t in sorted(set(moments))]
     else:
         part["keyframes"] = []
+    part["tracking_gaps"] = [
+        {"start": round(max(start, g["start"]), 3),
+         "end": round(min(end, g["end"]), 3)}
+        for g in segment.get("tracking_gaps", [])
+        if max(start, g["start"]) + .001 < min(end, g["end"])
+    ]
     return part
 
 def merge_intervals(intervals: list[tuple[float, float]], duration: float, min_length: float = 0) -> list[dict]:
