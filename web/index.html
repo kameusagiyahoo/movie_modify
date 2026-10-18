@@ -63,17 +63,20 @@ function drawEditor(){if(!current)return;disposeLive();const p=current;let ready
 <div class="panoWrap"><img id="panorama" alt="360度全景。タップで追尾対象または景色を選ぶ"><span id="targetDot"></span></div>
 <div class="row"><button class="mini" id="refreshPano">全景を更新</button>
 <label class="hint">追尾対象の幅 <select id="boxSize"><option value="0.07">小 7%</option><option value="0.10" selected>標準 10%</option><option value="0.15">大 15%</option><option value="0.20">特大 20%</option></select></label></div>
+<label class="hint" style="display:flex;gap:8px;align-items:center;min-height:40px"><input id="trackFromHere" type="checkbox">現在の再生位置から追尾を修正（前半を保持）</label>
 <button class="primary" id="trackButton" disabled>選択した人物を自動追尾</button>
 <div class="row"><button id="addKey" class="mini">この時刻の画角を記録</button><button id="clearKeys" class="mini">キーフレーム削除</button></div>
-<div class="hint" id="keyStatus"></div><div class="hint" id="trackWarning"></div>
+<div class="hint" id="keyStatus"></div><div class="hint" id="trackWarning"></div><div id="lostGaps" class="tracking-gaps" aria-label="見失った区間"></div>
 <button id="resetAngle" class="mini">選択区間の画角をリセット</button><p class="hint" id="angleHelp">${p.projection==='equirect'?'青い区間は人物追尾、緑は景色。360度の全景をタップして対象・方向を指定できます。':'通常動画は撮影外の方向へ動かせません。画角設定は360°のときのみ有効です。'}</p></div></div></div></section>
 <section class="panel"><div class="sectionhead"><h2>05 / 動画を書き出す</h2><span class="badge">FFmpeg</span></div><div class="row"><div class="formfield"><label>出力解像度</label><select id="outputSize"><option value="720p">720p（軽量）</option><option value="1080p">1080p（高画質）</option></select></div><button id="render" class="primary">MP4を生成</button><a id="download" href="/api/projects/${p.id}/export" style="display:none;color:#60dfc6">完成動画をダウンロード</a></div><p class="description" style="margin-top:12px">選択した区間のみ出力します。360°素材は区間ごとに指定した向きを16:9へ変換します。元動画は変更されません。</p><div id="jobStatus" class="status hidden" style="margin-top:11px"></div></section>`;$('editor').innerHTML=html;video=$('player');video.ontimeupdate=()=>{$('playtime').textContent=`${secs(video.currentTime)} / ${secs(p.duration)}`};$('frameButton').onclick=()=>updateFrame();$('analyze').onclick=analyzeVideo;$('apply').onclick=applySelected;$('split').onclick=splitHere;$('sceneryHere').onclick=sceneryHere;$('toggle').onclick=toggleSelected;
 if(p.projection==='equirect'){$('sceneryMode').onclick=()=>changePanoMode('scenery');$('followMode').onclick=()=>changePanoMode('follow');
 $('refreshPano').onclick=refreshPanorama;$('panorama').onclick=panoClick;
 $('trackButton').onclick=runTrack;$('addKey').onclick=addKey;
-$('clearKeys').onclick=()=>{let seg=current.segments[selected];seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';historyCheckpoint('キー削除');drawSegments()};}
+$('trackFromHere').onchange=()=>{target=null;refreshPanorama();};
+
+$('clearKeys').onclick=()=>{let seg=current.segments[selected];seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';seg.tracking_gaps=[];historyCheckpoint('キー削除');drawSegments()};}
 else{for(const id of ['sceneryHere','sceneryMode','followMode','refreshPano','trackButton','addKey','clearKeys']){const b=$(id);if(b)b.disabled=true}const wrap=$('panorama');if(wrap)wrap.parentElement.style.display='none'}
-$('save').onclick=saveSegments;$('render').onclick=renderVideo;$('resetAngle').onclick=()=>{Object.assign(current.segments[selected],{yaw:0,pitch:0,fov:90,mode:'manual',keyframes:[],tracking_warning:''});historyCheckpoint('画角リセット');drawSegments();updateFrame()};['yaw','pitch','fov'].forEach(k=>{$(k).disabled=p.projection!=='equirect';$(k).oninput=()=>{current.segments[selected][k]=Number($(k).value);$(k+'Text').textContent=$(k).value+'°';historyCheckpoint('画角スライダー '+k,true)}});drawSuggestions();drawSegments();if(p.projection==='equirect'){refreshPanorama();setupLivePreview(p.id)}window.MovieModifyUI?.mount(p);initializeEditHistory()}
+$('save').onclick=saveSegments;$('render').onclick=renderVideo;$('resetAngle').onclick=()=>{Object.assign(current.segments[selected],{yaw:0,pitch:0,fov:90,mode:'manual',keyframes:[],tracking_warning:'',tracking_gaps:[]});historyCheckpoint('画角リセット');drawSegments();updateFrame()};['yaw','pitch','fov'].forEach(k=>{$(k).disabled=p.projection!=='equirect';$(k).oninput=()=>{current.segments[selected][k]=Number($(k).value);$(k+'Text').textContent=$(k).value+'°';historyCheckpoint('画角スライダー '+k,true)}});drawSuggestions();drawSegments();if(p.projection==='equirect'){refreshPanorama();setupLivePreview(p.id)}window.MovieModifyUI?.mount(p);initializeEditHistory()}
 
 function historySnapshot(){
  return {segments:MovieModifyEditHistory.clone(current.segments),selected,
@@ -243,6 +246,24 @@ function drawSegments(){if(!current)return;queueMicrotask(()=>window.MovieModify
 for(let k of ['yaw','pitch','fov']){$(k).value=pose[k];$(k+'Text').textContent=Math.round(pose[k])+'°'}
 if(current.projection==='equirect'){$('keyStatus').textContent=(x.keyframes||[]).length+' 件の画角キーフレーム';
 $('trackWarning').textContent=x.tracking_warning||'';
+const gaps=$('lostGaps');gaps.replaceChildren();
+(x.tracking_gaps||[]).forEach((gap,i)=>{
+ const btn=document.createElement('button');btn.type='button';btn.className='mini gap-button';
+ btn.textContent='要確認 '+secs(gap.start)+'–'+secs(gap.end);
+ btn.title='この未検出区間の直後を開いて人物を選び直す';
+ btn.onclick=()=>{
+   video.pause();
+   const seek=Math.max(x.start,Math.min(x.end-.28,gap.end+.08));
+   video.currentTime=seek;
+   panoMode='follow';target=null;
+   $('trackFromHere').checked=true;
+   video.addEventListener('seeked',refreshPanorama,{once:true});
+   refreshPanorama();
+   alertMsg('人物が見える位置に移動し、全景で対象をタップしてください');
+ };
+ gaps.appendChild(btn);
+});
+
 $('sceneryMode').style.borderColor=x.mode==='manual'&&panoMode==='scenery'?'var(--mint)':'var(--line)';
 $('followMode').style.borderColor=x.mode==='follow'||panoMode==='follow'?'var(--mint)':'var(--line)';
 $('panoHelp').textContent=panoMode==='follow'?'対象の人物を全景でタップ→「自動追尾」を実行':'景色を全景でタップ。時刻ごとに画角を記録できます。';}}
@@ -336,15 +357,20 @@ if(t<=keys[0].time)return keys[0];
 if(t>=keys[keys.length-1].time)return keys[keys.length-1];
 for(let i=1;i<keys.length;i++){let a=keys[i-1],b=keys[i];if(t<=b.time){let r=(t-a.time)/(b.time-a.time);return {yaw:wrapYaw(a.yaw+wrapYaw(b.yaw-a.yaw)*r),pitch:a.pitch+(b.pitch-a.pitch)*r,fov:a.fov+(b.fov-a.fov)*r}}}
 return base}
-function sliceCamera(seg,start,end){let part={...seg,start,end,keyframes:[]};if((seg.keyframes||[]).length){let times=[start,...seg.keyframes.filter(k=>k.time>start&&k.time<end).map(k=>k.time),end];part.keyframes=times.map(time=>({time,...cameraAt(seg,time)}))}return part}
+function sliceCamera(seg,start,end){let part={...seg,start,end,keyframes:[],
+ tracking_gaps:(seg.tracking_gaps||[]).filter(g=>g.start<end&&g.end>start)
+ .map(g=>({start:Math.max(start,g.start),end:Math.min(end,g.end)}))};
+if((seg.keyframes||[]).length){let times=[start,...seg.keyframes.filter(k=>k.time>start&&k.time<end).map(k=>k.time),end];part.keyframes=times.map(time=>({time,...cameraAt(seg,time)}))}return part}
 function sceneryHere(){if(current.projection!=='equirect')return;
 let t=Number(video.currentTime),i=current.segments.findIndex(x=>t>x.start+.06&&t<x.end-.06);
 if(i>=0){let x=current.segments[i];current.segments.splice(i,1,sliceCamera(x,x.start,t),sliceCamera(x,t,x.end));selected=i+1}
-let s=current.segments[selected],pose=cameraAt(s,s.start);Object.assign(s,{...pose,mode:'manual',keyframes:[],tracking_warning:''});
+let s=current.segments[selected],pose=cameraAt(s,s.start);Object.assign(s,{...pose,mode:'manual',keyframes:[],tracking_warning:'',tracking_gaps:[]});
 panoMode='scenery';target=null;historyCheckpoint('景色へ切り替え');drawSegments();refreshPanorama();alertMsg('景色の方向を全景画像でタップしてください')}
 function changePanoMode(mode){panoMode=mode;target=null;drawSegments();refreshPanorama()}
 function refreshPanorama(){if(!current||current.projection!=='equirect')return;
-let seg=current.segments[selected],t=panoMode==='follow'?seg.start:Math.max(seg.start,Math.min(current.duration-.1,Number(video.currentTime)||seg.start));
+let seg=current.segments[selected],fromHere=$('trackFromHere')?.checked;
+let t=panoMode==='follow'&&!fromHere?seg.start:
+ Math.max(seg.start,Math.min(seg.end-.15,Number(video.currentTime)||seg.start));
 $('panorama').src='/api/projects/'+current.id+'/panorama?time='+Math.max(0,t).toFixed(2);
 if(!target){$('targetDot').style.display='none';$('trackButton').disabled=true}}
 function panoClick(ev){let rect=$('panorama').getBoundingClientRect(),x=Math.max(0,Math.min(1,(ev.clientX-rect.left)/rect.width)),y=Math.max(.02,Math.min(.98,(ev.clientY-rect.top)/rect.height));target={x,y};
@@ -355,15 +381,28 @@ $('yaw').value=Math.round(wrapYaw((x-.5)*360));$('pitch').value=Math.round(Math.
 addKey()}
 function addKey(){let seg=current.segments[selected],time=Math.round(Math.max(seg.start,Math.min(seg.end-.002,video.currentTime))*1000)/1000;
 let key={time,yaw:Number($('yaw').value),pitch:Number($('pitch').value),fov:Number($('fov').value)};
-if(seg.mode==='follow'){seg.keyframes=[];seg.mode='manual';seg.tracking_warning=''}
+if(seg.mode==='follow'){seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';seg.tracking_gaps=[]}
 if(!seg.keyframes?.length&&time>seg.start+.01)seg.keyframes=[{time:seg.start,yaw:seg.yaw,pitch:seg.pitch,fov:seg.fov}];
 seg.keyframes=seg.keyframes||[];seg.keyframes=seg.keyframes.filter(k=>Math.abs(k.time-time)>.002);
 seg.keyframes.push(key);seg.keyframes.sort((a,b)=>a.time-b.time);
 historyCheckpoint('画角キー追加');drawSegments();updateFrame();alertMsg('画角キーフレームを記録しました')}
 async function runTrack(){if(!target)return alertMsg('追尾対象をタップしてください',true);
-try{if(!await saveSegments())return;let sel=selected,chosen={...target};
-let res=await api('/api/projects/'+current.id+'/track',body({segment_index:sel,...chosen,box:Number($('boxSize').value),expected_revision:current.edit_revision}));
-$('trackButton').disabled=true;watchJob(res.job_id,async()=>{current=await api('/api/projects/'+current.id);selected=sel;panoMode='scenery';target=null;historyCheckpoint('人物追尾');editHistory?.updateBaseline(current.segments);drawSegments();updateFrame();alertMsg('追尾完了。遮蔽・似た人物の場面を確認してください')})
+try{
+ let sel=selected,chosen={...target},segment=current.segments[sel];
+ const fromHere=!!$('trackFromHere')?.checked;
+ let startTime=null;
+ if(fromHere){
+   if(segment.mode!=='follow'||!(segment.keyframes||[]).length)
+     return alertMsg('部分修正は既存の人物追尾区間で使用してください',true);
+   startTime=Math.max(segment.start,Math.min(segment.end-.26,Number(video.currentTime)));
+   if(startTime<=segment.start+.05)
+     return alertMsg('修正位置を区間の内部へ移動してください',true);
+ }
+ if(!await saveSegments())return;
+ let res=await api('/api/projects/'+current.id+'/track',
+ body({segment_index:sel,...chosen,box:Number($('boxSize').value),
+ expected_revision:current.edit_revision,...(fromHere?{start_time:startTime}:{})}));
+$('trackButton').disabled=true;watchJob(res.job_id,async()=>{current=await api('/api/projects/'+current.id);selected=sel;panoMode='scenery';target=null;$('trackFromHere').checked=false;historyCheckpoint('人物追尾');editHistory?.updateBaseline(current.segments);drawSegments();updateFrame();alertMsg('追尾完了。遮蔽・似た人物の場面を確認してください')})
 }catch(e){alertMsg(e.message,true)}}
 
 start();
