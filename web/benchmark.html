@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Movie Modify | 360°追尾ベンチマーク</title>
+<style>
+:root{font-family:system-ui,-apple-system,sans-serif;color:#ecf3f8;background:#0a1119;
+ --line:#304656;--panel:#142330;--mint:#60dfc6}
+*{box-sizing:border-box}body{margin:0}
+header,main{max-width:1000px;margin:auto;padding:16px}
+header{display:flex;justify-content:space-between;align-items:center;gap:8px}
+h1{font-size:clamp(19px,3vw,27px);margin:0}h2{font-size:16px;margin:0 0 11px}
+a{color:#9cebd9}
+main{display:grid;gap:14px}
+section{border:1px solid var(--line);background:var(--panel);border-radius:16px;padding:16px}
+p{line-height:1.6;color:#b9cad5;font-size:13px}
+button,input,select{font:inherit}
+button,select,input{min-height:44px;border:1px solid #476271;border-radius:11px;padding:9px 12px;background:#0d1b27;color:#ecf3f8}
+button{cursor:pointer}
+button.primary{background:var(--mint);color:#052a21;font-weight:750}
+button:disabled{opacity:.45}
+.row{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+.fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:15px 0}
+label{font-size:13px;display:grid;gap:5px}
+.cases{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.cases label{border:1px solid #46606e;padding:11px;border-radius:10px;display:flex;align-items:center;gap:8px}
+.cases input{min-height:22px;min-width:22px;accent-color:var(--mint)}
+#result{display:grid;gap:10px}
+#summary{font-size:13px;color:#b0f2db;line-height:1.6}
+.scroller{overflow-x:auto}
+table{width:100%;min-width:520px;border-collapse:collapse;font-size:12px}
+td,th{border-bottom:1px solid var(--line);padding:11px 7px;text-align:right;white-space:nowrap}
+td:first-child,th:first-child{text-align:left}
+progress{width:100%;height:20px;accent-color:var(--mint)}
+.error{color:#ffb5b5}
+#loginPane[hidden]{display:none}
+@media(max-width:500px){.cases{grid-template-columns:1fr}header,main{padding:10px}
+section{padding:13px}.row{flex-direction:column;align-items:stretch}.row>*{width:100%}}
+</style></head><body>
+<header><h1>360°追尾ベンチマーク</h1><a href="/">動画編集に戻る ↗</a></header>
+<main>
+<section id="loginPane" hidden><h2>PCへのアクセス認証</h2>
+<p>ローカルPCに設定したMOVIE_MODIFY_TOKENを入力してください。</p>
+<div class="row"><input id="token" type="password" autocomplete="current-password" aria-label="アクセス用パスフレーズ">
+<button id="login" class="primary">認証</button></div></section>
+<section><h2>合成動画による定量評価</h2>
+<p>プライベートな動画を使わず、位置が分かる合成360度映像を一時生成します。4種類の条件を選択してOpenCVの追尾精度と速度を比較できます。合成動画は処理後に削除します。</p>
+<div class="cases">
+<label><input type="checkbox" value="steady" checked>通常の移動</label>
+<label><input type="checkbox" value="seam" checked>360度の継ぎ目</label>
+<label><input type="checkbox" value="occlusion" checked>人物の遮蔽・復帰</label>
+<label><input type="checkbox" value="lookalike" checked>よく似た別の対象</label>
+</div>
+<div class="fields"><label>乱数シード<input id="seed" type="number" value="103" min="0" max="2147483646"></label>
+<label>評価FPS<select id="fps"><option value="2">2 fps</option><option value="4" selected>4 fps</option><option value="6">6 fps</option></select></label>
+<label>合成動画の長さ<select id="duration"><option value="3">3秒</option><option value="5" selected>5秒</option><option value="8">8秒</option></select></label></div>
+<div class="row"><button id="run" class="primary">評価を実行</button>
+<button id="refresh">履歴を更新</button></div>
+<progress id="progress" max="100" value="0" hidden></progress>
+<p id="status" role="status" aria-live="polite">評価履歴を読み込みます。</p>
+</section>
+<section id="result"><h2>評価結果と比較</h2>
+<label>保存済みの評価を選択<select id="history"><option value="">未測定</option></select></label>
+<div id="summary"></div>
+<div class="scroller"><table><thead><tr><th>条件</th><th>15°以内</th><th>平均誤差</th><th>未検出</th><th>処理fps</th><th>復帰遅延</th></tr></thead>
+<tbody id="rows"></tbody></table></div>
+<button id="saveJson" disabled>評価レポートをJSONで保存</button>
+<p>15°以内の割合は、対象が可視のフレームでカメラ中心が目標位置の近くにある割合です。本人識別の精度ではありません。異なるCPUやOSでのFPS比較、実際の家族動画への精度外挿はできません。</p>
+</section>
+</main><script>
+"use strict";
+const $ = id => document.getElementById(id);
+const LABELS = {steady:"通常移動",seam:"360°継ぎ目",occlusion:"遮蔽",lookalike:"類似対象"};
+let reports=[],selectedReport=null,running=false;
+const fmt=(v,d=1)=>typeof v==="number"&&Number.isFinite(v)?v.toFixed(d):"—";
+async function api(path,init={}){
+ const res=await fetch(path,{credentials:"same-origin",...init});
+ const data=await res.json().catch(()=>({}));
+ if(res.status===401){$("loginPane").hidden=false;throw Error("PCの認証が必要です")}
+ if(!res.ok)throw Error(typeof data.detail==="string"?data.detail:data.detail?.message||"HTTP "+res.status);
+ return data;
+}
+function announce(message,failed=false){$("status").textContent=message;$("status").classList.toggle("error",failed)}
+async function reload(preferred){
+ reports=await api("/api/benchmarks");
+ const list=$("history"),old=preferred||list.value;
+ list.replaceChildren();
+ if(!reports.length){
+  const opt=document.createElement("option");opt.value="";opt.textContent="評価履歴なし";
+  list.append(opt);$("summary").textContent="まず合成評価を実行してください。";
+  $("rows").replaceChildren();$("saveJson").disabled=true;return;
+ }
+ for(const item of reports){
+  const option=document.createElement("option");option.value=item.id;
+  option.textContent=new Date(item.created_at).toLocaleString("ja-JP")+" — "+item.tracker_version;
+  list.append(option);
+ }
+ list.value=reports.some(r=>r.id===old)?old:reports[0].id;
+ await display(list.value);
+}
+async function display(id){
+ if(!id)return;
+ const report=await api("/api/benchmarks/"+encodeURIComponent(id));
+ selectedReport=report;
+ $("summary").replaceChildren();
+ const info=document.createElement("div");
+ info.textContent="成功率 "+fmt(report.summary.mean_success_rate_visible*100)+"% ／ 平均中心誤差 "+
+ fmt(report.summary.mean_center_error_deg)+"° ／ 追尾処理計 "+fmt(report.summary.total_wall_time_s)+"秒";
+ $("summary").append(info);
+ const previous=reports.find(r=>r.id!==id&&JSON.stringify(r.configuration)===JSON.stringify(report.configuration));
+ if(previous){
+  const diff=(report.summary.mean_success_rate_visible-previous.summary.mean_success_rate_visible)*100;
+  const line=document.createElement("div");line.textContent="直前の同条件との差："+
+    (diff>=0?"+":"")+fmt(diff)+"ポイント";$("summary").append(line);
+ }
+ const tbody=$("rows");tbody.replaceChildren();
+ for(const item of report.cases){
+  const m=item.metrics;
+  const row=document.createElement("tr");
+  for(const value of [LABELS[item.case]||item.case,fmt(m.success_rate_visible*100)+"%",
+   fmt(m.mean_center_error_deg)+"°",fmt(m.untrusted_seconds)+"秒",
+   fmt(m.process_fps),fmt(m.reacquisition_latency_s)+"秒"]){
+   const cell=document.createElement("td");cell.textContent=value;row.append(cell);
+  }tbody.append(row);
+ }
+ $("saveJson").disabled=false;
+}
+async function run(){
+ if(running)return;
+ const cases=Array.from(document.querySelectorAll('.cases input:checked')).map(el=>el.value);
+ if(!cases.length)return announce("少なくとも1条件を選択してください",true);
+ running=true;$("run").disabled=true;
+ try{
+  const seed=Number($("seed").value);
+  const duration=Number($("duration").value),fps=Number($("fps").value);
+  const started=await api("/api/benchmarks/run",{method:"POST",
+   headers:{"Content-Type":"application/json"},body:JSON.stringify({cases,seed,duration,fps})});
+  $("progress").hidden=false;
+  const poll=async()=>{
+   try{
+    const job=await api("/api/jobs/"+started.job_id);
+    $("progress").value=job.progress;
+    announce("評価中 "+job.progress+"%（"+job.state+"）");
+    if(job.state==="done"){running=false;$("run").disabled=false;await reload();
+      announce("合成ベンチマークが完了しました。");return;}
+    if(job.state==="failed"){running=false;$("run").disabled=false;
+      announce("評価失敗："+(job.error||"処理できませんでした"),true);return;}
+    setTimeout(poll,1500);
+   }catch(e){running=false;$("run").disabled=false;announce(e.message,true)}
+  };
+  poll();
+ }catch(e){running=false;$("run").disabled=false;announce(e.message,true)}
+}
+$("run").onclick=run;
+$("refresh").onclick=()=>reload().catch(e=>announce(e.message,true));
+$("history").onchange=()=>display($("history").value).catch(e=>announce(e.message,true));
+$("saveJson").onclick=()=>{
+ if(!selectedReport)return;
+ const blob=new Blob([JSON.stringify(selectedReport,null,2)],{type:"application/json"});
+ const url=URL.createObjectURL(blob),a=document.createElement("a");
+ a.href=url;a.download="benchmark-"+selectedReport.id+".json";a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),15000);
+};
+$("login").onclick=async()=>{
+ try{await api("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({password:$("token").value})});
+  $("token").value="";$("loginPane").hidden=true;await reload();}catch(e){announce(e.message,true)}
+};
+reload().catch(e=>announce(e.message,true));
+</script></body></html>
