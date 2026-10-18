@@ -136,10 +136,18 @@ def test_benchmark_api_job_and_readback(tmp_path, monkeypatch):
         assert single.json()["configuration"]["cases"] == ["seam"]
         assert client.get("/api/benchmarks/../../etc/passwd").status_code != 200
         assert client.get("/api/benchmarks/"+"x"*32).status_code == 404
+        standalone=client.get("/benchmark")
+        assert standalone.status_code == 200
+        assert "360°追尾ベンチマーク" in standalone.text
+        assert "/api/benchmarks/run" in standalone.text
 
 
 def test_ui_has_run_and_comparison_controls():
     app = (Path(__file__).resolve().parents[1] / "web/index.html").read_text(encoding="utf-8")
+    dashboard=(Path(__file__).resolve().parents[1] / "web/benchmark.html").read_text(encoding="utf-8")
+    assert 'id="history"' in dashboard
+    assert 'id="run"' in dashboard
+    assert "reacquisition_latency_s" in dashboard
     assert 'id="benchmarkPanel"' in app
     assert 'id="benchmarkRun"' in app
     assert 'id="benchmarkChoice"' in app
