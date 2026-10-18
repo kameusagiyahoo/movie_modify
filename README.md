@@ -17,7 +17,9 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 
 ## Synthetic tracking benchmark (offline, Windows/Linux)
 
-The local detailed editor now provides **06 / 追尾の定量評価**. Press
+Use the standalone **http://127.0.0.1:8000/benchmark** page on your
+Windows/Linux server; it works without first importing a family video.
+The local detailed editor also provides **06 / 追尾の定量評価**. Press
 **4条件で評価を実行** to benchmark the installed OpenCV tracking algorithm
 on deterministic synthetic equirectangular videos with known target positions.
 It never requires real family footage or external cloud services.
