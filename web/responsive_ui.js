@@ -96,7 +96,7 @@
     editor.dataset.mobileTab = "timeline";
     const blocks = Array.from(editor.children).filter(node => node.matches("section.panel"));
     if (blocks.length < 4) return;
-    const [viewer, cut, timeline, output] = blocks;
+    const [viewer, cut, timeline, output, ...optionalPanels] = blocks;
     viewer.classList.add("viewer-panel");
     cut.classList.add("cut-panel");
     timeline.classList.add("timeline-panel");
@@ -108,6 +108,12 @@
     secondary.className = "editor-column secondary-column";
     primary.append(viewer, timeline);
     secondary.append(cut, output);
+    // Keep extra tools such as the synthetic benchmark attached to the
+    // responsive workspace instead of silently discarding their DOM nodes.
+    for (const panel of optionalPanels) {
+      panel.classList.add("benchmark-panel");
+      secondary.append(panel);
+    }
 
     const tabs = document.createElement("nav");
     tabs.className = "mobile-tabs";
