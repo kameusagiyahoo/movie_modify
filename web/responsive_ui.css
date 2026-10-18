@@ -166,3 +166,11 @@ body{overscroll-behavior-y:contain}
 #benchmarkChoice{width:100%;max-width:100%}
 @media(max-width:600px){.benchmark-actions button{flex:1;min-width:120px}
   .benchmark-table{font-size:11px}}
+
+
+/* Extra benchmark section belongs to the Export tab in narrow layouts. */
+@media(max-width:900px){
+ .benchmark-panel{order:6}
+ .workspace.has-editor[data-mobile-tab="timeline"] .benchmark-panel,
+ .workspace.has-editor[data-mobile-tab="cut"] .benchmark-panel{display:none}
+}
