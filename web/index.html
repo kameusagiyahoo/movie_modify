@@ -72,7 +72,7 @@ function drawEditor(){if(!current)return;disposeLive();const p=current;let ready
 if(p.projection==='equirect'){$('sceneryMode').onclick=()=>changePanoMode('scenery');$('followMode').onclick=()=>changePanoMode('follow');
 $('refreshPano').onclick=refreshPanorama;$('panorama').onclick=panoClick;
 $('trackButton').onclick=runTrack;$('addKey').onclick=addKey;
-$('trackFromHere').onchange=()=>{target=null;refreshPanorama();};
+$('trackFromHere').onchange=()=>{target=null;if($('trackFromHere').checked)panoMode='follow';drawSegments();refreshPanorama();};
 
 $('clearKeys').onclick=()=>{let seg=current.segments[selected];seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';seg.tracking_gaps=[];historyCheckpoint('キー削除');drawSegments()};}
 else{for(const id of ['sceneryHere','sceneryMode','followMode','refreshPano','trackButton','addKey','clearKeys']){const b=$(id);if(b)b.disabled=true}const wrap=$('panorama');if(wrap)wrap.parentElement.style.display='none'}
@@ -378,7 +378,7 @@ let t=Number(video.currentTime),i=current.segments.findIndex(x=>t>x.start+.06&&t
 if(i>=0){let x=current.segments[i];current.segments.splice(i,1,sliceCamera(x,x.start,t),sliceCamera(x,t,x.end));selected=i+1}
 let s=current.segments[selected],pose=cameraAt(s,s.start);Object.assign(s,{...pose,mode:'manual',keyframes:[],tracking_warning:'',tracking_gaps:[]});
 panoMode='scenery';target=null;historyCheckpoint('景色へ切り替え');drawSegments();refreshPanorama();alertMsg('景色の方向を全景画像でタップしてください')}
-function changePanoMode(mode){panoMode=mode;target=null;drawSegments();refreshPanorama()}
+function changePanoMode(mode){panoMode=mode;target=null;if(mode!=='follow')$('trackFromHere').checked=false;drawSegments();refreshPanorama()}
 function refreshPanorama(){if(!current||current.projection!=='equirect')return;
 let seg=current.segments[selected],fromHere=$('trackFromHere')?.checked;
 let t=panoMode==='follow'&&!fromHere?seg.start:
