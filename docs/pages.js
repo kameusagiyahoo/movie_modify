@@ -38,7 +38,7 @@
     document.body.append(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
   }
-  const fresh = (start, end) => ({start, end, keep:true, yaw:0, pitch:0, fov:90, mode:'manual', keyframes:[], suggested:false});
+  const fresh = (start, end) => ({start, end, keep:true, yaw:0, pitch:0, fov:90, mode:'manual', keyframes:[],tracking_gaps:[],suggested:false});
   function validateSegment(s, prevEnd) {
     const clean = {...fresh(0,0), ...s};
     for (const k of ['start','end','yaw','pitch','fov']) clean[k] = Number(clean[k]);
@@ -58,6 +58,16 @@
         throw Error('画角キーフレームが無効です');
       return frame;
     }).sort((a,b) => a.time-b.time);
+    if(!Array.isArray(clean.tracking_gaps)||clean.tracking_gaps.length>5000)
+      throw Error('追尾未検出区間が不正です');
+    let prev=clean.start;
+    clean.tracking_gaps=clean.tracking_gaps.map(g=>{
+      const start=Number(g?.start),end=Number(g?.end);
+      if(!Number.isFinite(start)||!Number.isFinite(end)||
+         start<clean.start-.002||end>clean.end+.002||end<=start||
+         start<prev-.002)throw Error('追尾未検出区間の時刻が不正です');
+      prev=end;return {start,end};
+    });
     return clean;
   }
 
@@ -332,7 +342,9 @@
     vp.scrollLeft=clamp(video.currentTime/duration,0,1)*width-vp.clientWidth*.5;
   }
   function sliceSegment(seg,start,end) {
-    const result={...seg,start,end,keyframes:[]};
+    const result={...seg,start,end,keyframes:[],
+      tracking_gaps:(seg.tracking_gaps||[]).filter(g=>g.start<end&&g.end>start)
+      .map(g=>({start:Math.max(start,g.start),end:Math.min(end,g.end)}))};
     if(seg.keyframes?.length){
       const times=[start,...seg.keyframes.filter(k=>k.time>start&&k.time<end).map(k=>k.time),end];
       result.keyframes=times.map(time=>({time,...cameraAt(seg,time)}));
@@ -358,7 +370,7 @@
     if(i>=0){const s=segments[i];segments.splice(i,1,sliceSegment(s,s.start,t),sliceSegment(s,t,s.end));selected=i+1;}
     else if(findIndex(t)>=0) selected=findIndex(t);
     const seg=segments[selected],p=cameraAt(seg,t);
-    Object.assign(seg,{yaw:p.yaw,pitch:p.pitch,fov:p.fov,mode:'manual',keyframes:[]});
+    Object.assign(seg,{yaw:p.yaw,pitch:p.pitch,fov:p.fov,mode:'manual',keyframes:[],tracking_gaps:[],tracking_warning:''});
     draft=null;checkpoint('景色に切り替え');renderTimeline();showSegment();switchTab('camera');
     notify('景色の方向をスライダーで指定し、「画角キー追加」を押してください。');
   }
@@ -374,7 +386,7 @@
     const seg=segments[selected];
     const time=clamp(video.currentTime,seg.start,seg.end-.002);
     const pose=draft||{yaw:Number($('yaw').value),pitch:Number($('pitch').value),fov:Number($('fov').value)};
-    if(seg.mode==='follow'){seg.mode='manual';seg.keyframes=[];}
+    if(seg.mode==='follow'){seg.mode='manual';seg.keyframes=[];seg.tracking_gaps=[];seg.tracking_warning='';}
     if(!seg.keyframes.length && time>seg.start+.002) seg.keyframes=[{time:seg.start,yaw:seg.yaw,pitch:seg.pitch,fov:seg.fov}];
     seg.keyframes=seg.keyframes.filter(k=>Math.abs(k.time-time)>.004);
     seg.keyframes.push({time,yaw:pose.yaw,pitch:pose.pitch,fov:pose.fov});
@@ -383,7 +395,7 @@
   }
   function resetAngle() {
     if(!loaded||projection!=='equirect')return;
-    Object.assign(segments[selected],{yaw:0,pitch:0,fov:90,keyframes:[],mode:'manual'});
+    Object.assign(segments[selected],{yaw:0,pitch:0,fov:90,keyframes:[],mode:'manual',tracking_gaps:[],tracking_warning:''});
     draft=null;checkpoint('画角をリセット');renderTimeline();showSegment();
   }
   function projectJson() {
