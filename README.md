@@ -23,8 +23,11 @@ person is occluded or the match is unreliable, it **holds the last trusted
 camera orientation** rather than drifting to a visually similar person.
 Re-acquisition searches a widening *local* region of the stitched panorama,
 including the 360° seam, and requires stronger evidence after a long gap.
-Ambiguous competing matches are rejected, and the project records a warning
-with lost-frame duration and recovery counts.
+Ambiguous competing matches are rejected. The tracker also rejects implausible
+single-frame position jumps (using seam-aware 360° distances). After losing
+the subject, **two consecutive spatially consistent detections** are required
+before the camera follows the recovered candidate. This reduces switches to
+one-frame lookalikes but can delay recovery. Warnings include rejected-jump counts.
 
 This is not facial recognition or an identity guarantee: long occlusions,
 outfit changes, camera motion, and similar people can still cause a lost track.
@@ -56,7 +59,9 @@ is unreliable or more than one plausible person matches, the camera holds the
 last trusted direction and retries only in a gradually wider local search.
 
 Tracking now records the **source-time loss intervals** in the EDL's
-`tracking_gaps` field. In the local advanced editor, select a blue follow
+`tracking_gaps` field. The timeline review toolbar displays how many
+untrusted intervals remain and their total duration. **次の要確認区間へ**
+navigates between gaps even across different segments. In the local advanced editor, select a blue follow
 segment to see the **要確認** time buttons. Tapping one seeks to the end of
 the unreliable stretch and opens the 360° panorama for inspection.
 
