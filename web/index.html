@@ -242,7 +242,19 @@ async function loadServerEditHistory(){
 }
 
 function drawSuggestions(){if(!current)return;let s=current.suggestions||[];$('suggestions').innerHTML=s.length?s.map((x,i)=>`<label class="suggestion"><input type="checkbox" class="pick" value="${i}" checked><span class="grow">${secs(x.start)} – ${secs(x.end)}</span><span class="muted">${Math.round(x.end-x.start)}秒 · カット候補</span></label>`).join(''):'<p class="hint">候補はありません。解析しても元動画はカットされません。</p>';$('apply').disabled=!s.length}
-function drawSegments(){if(!current)return;queueMicrotask(()=>window.MovieModifyUI?.decorate(current));selected=Math.min(selected,current.segments.length-1);let s=current.segments,kept=s.filter(x=>x.keep).reduce((n,x)=>n+x.end-x.start,0);$('edlStats').textContent=`${s.length}区間 / 残す ${secs(kept)}`;$('timeline').innerHTML=s.map((x,i)=>`<div class="bar ${x.keep?'': 'cut'} ${x.keep&&x.mode==='follow'?'follow':''} ${i===selected?'selected':''}" data-i="${i}" style="width:${100*(x.end-x.start)/current.duration}%" title="${secs(x.start)}–${secs(x.end)}"><span>${x.end-x.start>current.duration*.05?i+1:''}</span></div>`).join('');$('segments').innerHTML=s.map((x,i)=>`<button class="segment ${x.keep?'':'cut'} ${i===selected?'selected':''}" data-i="${i}"><strong>${i+1}</strong><span>${secs(x.start)} – ${secs(x.end)} ${current.projection==='equirect'?` / ${x.mode==='follow'?'追尾': '景色'}`:''}</span><span class="state">${x.keep?'残す':'カット'}</span></button>`).join('');document.querySelectorAll('.bar,.segment').forEach(e=>e.onclick=()=>{selected=Number(e.dataset.i);video.currentTime=current.segments[selected].start;target=null;drawSegments();if(current.projection==='equirect')refreshPanorama()});let x=s[selected], pose=cameraAt(x,Number(video?.currentTime)||x.start);
+function drawSegments(){if(!current)return;queueMicrotask(()=>window.MovieModifyUI?.decorate(current));selected=Math.min(selected,current.segments.length-1);let s=current.segments,kept=s.filter(x=>x.keep).reduce((n,x)=>n+x.end-x.start,0);$('edlStats').textContent=`${s.length}区間 / 残す ${secs(kept)}`;$('timeline').innerHTML=s.map((x,i)=>`<div class="bar ${x.keep?'': 'cut'} ${x.keep&&x.mode==='follow'?'follow':''} ${i===selected?'selected':''}" data-i="${i}" style="width:${100*(x.end-x.start)/current.duration}%" title="${secs(x.start)}–${secs(x.end)}"><span>${x.end-x.start>current.duration*.05?i+1:''}</span></div>`).join('');
+for(const seg of s){
+ for(const gap of (seg.tracking_gaps||[])){
+  const marker=document.createElement('span');
+  marker.className='tracking-gap-marker';
+  marker.title='追尾未検出 '+secs(gap.start)+'–'+secs(gap.end);
+  marker.style.left=(100*gap.start/current.duration)+'%';
+  marker.style.width=(100*(gap.end-gap.start)/current.duration)+'%';
+  marker.setAttribute('aria-hidden','true');
+  $('timeline').append(marker);
+ }
+}
+$('segments').innerHTML=s.map((x,i)=>`<button class="segment ${x.keep?'':'cut'} ${i===selected?'selected':''}" data-i="${i}"><strong>${i+1}</strong><span>${secs(x.start)} – ${secs(x.end)} ${current.projection==='equirect'?` / ${x.mode==='follow'?'追尾': '景色'}`:''}</span><span class="state">${x.keep?'残す':'カット'}</span></button>`).join('');document.querySelectorAll('.bar,.segment').forEach(e=>e.onclick=()=>{selected=Number(e.dataset.i);video.currentTime=current.segments[selected].start;target=null;drawSegments();if(current.projection==='equirect')refreshPanorama()});let x=s[selected], pose=cameraAt(x,Number(video?.currentTime)||x.start);
 for(let k of ['yaw','pitch','fov']){$(k).value=pose[k];$(k+'Text').textContent=Math.round(pose[k])+'°'}
 if(current.projection==='equirect'){$('keyStatus').textContent=(x.keyframes||[]).length+' 件の画角キーフレーム';
 $('trackWarning').textContent=x.tracking_warning||'';
