@@ -68,7 +68,17 @@ function drawEditor(){if(!current)return;disposeLive();const p=current;let ready
 <div class="row"><button id="addKey" class="mini">この時刻の画角を記録</button><button id="clearKeys" class="mini">キーフレーム削除</button></div>
 <div class="hint" id="keyStatus"></div><div class="hint" id="trackWarning"></div><div class="row track-review-toolbar"><span id="gapSummary" class="hint" aria-live="polite"></span><button id="nextTrackingGap" class="mini" type="button">次の要確認区間へ</button></div><div id="lostGaps" class="tracking-gaps" aria-label="見失った区間"></div>
 <button id="resetAngle" class="mini">選択区間の画角をリセット</button><p class="hint" id="angleHelp">${p.projection==='equirect'?'青い区間は人物追尾、緑は景色。360度の全景をタップして対象・方向を指定できます。':'通常動画は撮影外の方向へ動かせません。画角設定は360°のときのみ有効です。'}</p></div></div></div></section>
-<section class="panel"><div class="sectionhead"><h2>05 / 動画を書き出す</h2><span class="badge">FFmpeg</span></div><div class="row"><div class="formfield"><label>出力解像度</label><select id="outputSize"><option value="720p">720p（軽量）</option><option value="1080p">1080p（高画質）</option></select></div><button id="render" class="primary">MP4を生成</button><a id="download" href="/api/projects/${p.id}/export" style="display:none;color:#60dfc6">完成動画をダウンロード</a></div><p class="description" style="margin-top:12px">選択した区間のみ出力します。360°素材は区間ごとに指定した向きを16:9へ変換します。元動画は変更されません。</p><div id="jobStatus" class="status hidden" style="margin-top:11px"></div></section>`;$('editor').innerHTML=html;video=$('player');video.ontimeupdate=()=>{$('playtime').textContent=`${secs(video.currentTime)} / ${secs(p.duration)}`};$('frameButton').onclick=()=>updateFrame();$('analyze').onclick=analyzeVideo;$('apply').onclick=applySelected;$('split').onclick=splitHere;$('sceneryHere').onclick=sceneryHere;$('toggle').onclick=toggleSelected;
+<section class="panel"><div class="sectionhead"><h2>05 / 動画を書き出す</h2><span class="badge">FFmpeg</span></div><div class="row"><div class="formfield"><label>出力解像度</label><select id="outputSize"><option value="720p">720p（軽量）</option><option value="1080p">1080p（高画質）</option></select></div><button id="render" class="primary">MP4を生成</button><a id="download" href="/api/projects/${p.id}/export" style="display:none;color:#60dfc6">完成動画をダウンロード</a></div><p class="description" style="margin-top:12px">選択した区間のみ出力します。360°素材は区間ごとに指定した向きを16:9へ変換します。元動画は変更されません。</p><div id="jobStatus" class="status hidden" style="margin-top:11px"></div></section>
+<section class="panel" id="benchmarkPanel"><div class="sectionhead"><h2>06 / 追尾の定量評価</h2><span class="badge">合成360°</span></div>
+<p class="description">正解位置が分かる合成動画で、現在のOpenCV追尾の性能を測定します。個人の動画を使わず、テスト映像は処理後に削除します。</p>
+<div class="row benchmark-actions"><button class="primary" id="benchmarkRun" type="button">4条件で評価を実行</button><button id="benchmarkRefresh" type="button">結果を更新</button>
+<button id="benchmarkDownload" type="button" disabled>結果JSONを保存</button></div>
+<div class="hint" id="benchmarkStatus" role="status" aria-live="polite">前回の測定結果を読み込みます。</div>
+<div class="formfield"><label for="benchmarkChoice">評価履歴</label><select id="benchmarkChoice" aria-label="評価結果を選択"><option>未測定</option></select></div>
+<div id="benchmarkSummary" class="benchmark-summary"></div><div class="benchmark-table-scroll"><table class="benchmark-table">
+<thead><tr><th>条件</th><th>15°以内</th><th>平均誤差</th><th>未検出</th><th>速度</th></tr></thead><tbody id="benchmarkRows"></tbody></table></div>
+<p class="hint">成功率は「対象が見えるサンプルで画角中心が15°以内」の割合です。人物の本人識別率ではありません。処理FPSは端末・OSに依存します。</p>
+</section>`;$('editor').innerHTML=html;video=$('player');video.ontimeupdate=()=>{$('playtime').textContent=`${secs(video.currentTime)} / ${secs(p.duration)}`};$('frameButton').onclick=()=>updateFrame();$('analyze').onclick=analyzeVideo;$('apply').onclick=applySelected;$('split').onclick=splitHere;$('sceneryHere').onclick=sceneryHere;$('toggle').onclick=toggleSelected;
 if(p.projection==='equirect'){$('sceneryMode').onclick=()=>changePanoMode('scenery');$('followMode').onclick=()=>changePanoMode('follow');
 $('refreshPano').onclick=refreshPanorama;$('panorama').onclick=panoClick;
 $('trackButton').onclick=runTrack;$('addKey').onclick=addKey;
@@ -77,7 +87,9 @@ $('trackFromHere').onchange=()=>{target=null;if($('trackFromHere').checked)panoM
 
 $('clearKeys').onclick=()=>{let seg=current.segments[selected];seg.keyframes=[];seg.mode='manual';seg.tracking_warning='';seg.tracking_gaps=[];historyCheckpoint('キー削除');drawSegments()};}
 else{for(const id of ['sceneryHere','sceneryMode','followMode','refreshPano','trackButton','addKey','clearKeys','nextTrackingGap']){const b=$(id);if(b)b.disabled=true}const wrap=$('panorama');if(wrap)wrap.parentElement.style.display='none'}
-$('save').onclick=saveSegments;$('render').onclick=renderVideo;$('resetAngle').onclick=()=>{Object.assign(current.segments[selected],{yaw:0,pitch:0,fov:90,mode:'manual',keyframes:[],tracking_warning:'',tracking_gaps:[]});historyCheckpoint('画角リセット');drawSegments();updateFrame()};['yaw','pitch','fov'].forEach(k=>{$(k).disabled=p.projection!=='equirect';$(k).oninput=()=>{current.segments[selected][k]=Number($(k).value);$(k+'Text').textContent=$(k).value+'°';historyCheckpoint('画角スライダー '+k,true)}});drawSuggestions();drawSegments();if(p.projection==='equirect'){refreshPanorama();setupLivePreview(p.id)}window.MovieModifyUI?.mount(p);initializeEditHistory()}
+$('benchmarkRun').onclick=startSyntheticBenchmark;$('benchmarkRefresh').onclick=loadBenchmarkReports;$('benchmarkChoice').onchange=()=>showBenchmarkReport($('benchmarkChoice').value);
+$('benchmarkDownload').onclick=downloadBenchmarkReport;
+$('save').onclick=saveSegments;$('render').onclick=renderVideo;$('resetAngle').onclick=()=>{Object.assign(current.segments[selected],{yaw:0,pitch:0,fov:90,mode:'manual',keyframes:[],tracking_warning:'',tracking_gaps:[]});historyCheckpoint('画角リセット');drawSegments();updateFrame()};['yaw','pitch','fov'].forEach(k=>{$(k).disabled=p.projection!=='equirect';$(k).oninput=()=>{current.segments[selected][k]=Number($(k).value);$(k+'Text').textContent=$(k).value+'°';historyCheckpoint('画角スライダー '+k,true)}});drawSuggestions();drawSegments();if(p.projection==='equirect'){refreshPanorama();setupLivePreview(p.id)}window.MovieModifyUI?.mount(p);initializeEditHistory();loadBenchmarkReports().catch(err=>{$('benchmarkStatus').textContent=err.message})}
 
 function historySnapshot(){
  return {segments:MovieModifyEditHistory.clone(current.segments),selected,
@@ -240,6 +252,102 @@ async function loadServerEditHistory(){
    area.append(button);
   }
  }catch(err){alertMsg(err.message,true);}
+}
+
+
+let benchmarkIndex=[],benchmarkSelected=null;
+const benchmarkNames={steady:'通常移動',seam:'360°継ぎ目',occlusion:'遮蔽・復帰',lookalike:'類似対象'};
+const fmtBenchmark=(x,d=1)=>typeof x==='number'&&Number.isFinite(x)?x.toFixed(d):'—';
+async function loadBenchmarkReports(preferredId=null){
+ const reports=await api('/api/benchmarks');
+ benchmarkIndex=reports;
+ const select=$('benchmarkChoice');
+ if(!select)return;
+ const previous=preferredId||select.value;
+ select.replaceChildren();
+ if(!reports.length){
+  const opt=document.createElement('option');opt.textContent='まだ評価結果がありません';opt.value='';select.append(opt);
+  $('benchmarkSummary').textContent='合成ベンチマークを実行すると結果がここに表示されます。';
+  $('benchmarkRows').replaceChildren();$('benchmarkDownload').disabled=true;return;
+ }
+ for(const item of reports){
+  const opt=document.createElement('option');
+  opt.value=item.id;
+  opt.textContent=new Date(item.created_at).toLocaleString('ja-JP')+
+    ' · '+item.tracker_version;
+  select.append(opt);
+ }
+ select.value=reports.some(r=>r.id===previous)?previous:reports[0].id;
+ await showBenchmarkReport(select.value);
+}
+async function showBenchmarkReport(id){
+ if(!id)return;
+ const report=await api('/api/benchmarks/'+encodeURIComponent(id));
+ benchmarkSelected=report;
+ const root=$('benchmarkSummary'),rows=$('benchmarkRows');
+ if(!root||!rows)return;
+ root.replaceChildren();rows.replaceChildren();
+ const line=document.createElement('div');
+ line.textContent='測定 '+new Date(report.created_at).toLocaleString('ja-JP')+
+   ' ／ 合成'+report.summary.case_count+'条件 ／ 平均成功率 '+
+   fmtBenchmark(report.summary.mean_success_rate_visible*100)+'% ／ 平均角度誤差 '+
+   fmtBenchmark(report.summary.mean_center_error_deg)+'°';
+ root.append(line);
+ const previous=benchmarkIndex.find(item=>item.id!==id&&
+   JSON.stringify(item.configuration)===JSON.stringify(report.configuration));
+ if(previous){
+  const diff=(report.summary.mean_success_rate_visible-previous.summary.mean_success_rate_visible)*100;
+  const change=document.createElement('div');
+  change.textContent='直前の同条件評価との差：成功率 '+
+    (diff>=0?'+':'')+fmtBenchmark(diff)+'ポイント（同じ種・FPS・ケース）';
+  root.append(change);
+ }
+ for(const entry of report.cases){
+  const values=[benchmarkNames[entry.case]||entry.case,
+    fmtBenchmark(entry.metrics.success_rate_visible*100)+'%',
+    fmtBenchmark(entry.metrics.mean_center_error_deg)+'°',
+    fmtBenchmark(entry.metrics.untrusted_seconds)+'秒',
+    fmtBenchmark(entry.metrics.process_fps)+' fps'];
+  const tr=document.createElement('tr');
+  for(const value of values){
+   const td=document.createElement('td');td.textContent=value;tr.append(td);
+  }
+  rows.append(tr);
+ }
+ $('benchmarkDownload').disabled=false;
+ $('benchmarkStatus').textContent='評価結果はこのPCの data/benchmarks/ に保存されています。';
+}
+function downloadBenchmarkReport(){
+ if(!benchmarkSelected)return;
+ const blob=new Blob([JSON.stringify(benchmarkSelected,null,2)],{type:'application/json'});
+ const url=URL.createObjectURL(blob),a=document.createElement('a');
+ a.href=url;a.download='tracking-benchmark-'+benchmarkSelected.id+'.json';a.click();
+ setTimeout(()=>URL.revokeObjectURL(url),30000);
+}
+async function startSyntheticBenchmark(){
+ const button=$('benchmarkRun'),status=$('benchmarkStatus');
+ if(!button||button.disabled)return;
+ button.disabled=true;
+ try{
+  const started=await api('/api/benchmarks/run',body({
+   cases:['steady','seam','occlusion','lookalike'],seed:103,fps:4,duration:5
+  }));
+  status.textContent='評価待ち：追尾処理キューへ追加しました。';
+  const poll=async()=>{
+   try{
+    const job=await api('/api/jobs/'+started.job_id);
+    status.textContent='合成動画で評価中 '+job.progress+'%（'+job.state+'）';
+    if(job.state==='done'){
+     button.disabled=false;await loadBenchmarkReports();return;
+    }
+    if(job.state==='failed'){
+     button.disabled=false;status.textContent='評価失敗：'+(job.error||'不明なエラー');return;
+    }
+    setTimeout(poll,1400);
+   }catch(error){button.disabled=false;status.textContent=error.message;}
+  };
+  poll();
+ }catch(error){button.disabled=false;status.textContent=error.message;}
 }
 
 function drawSuggestions(){if(!current)return;let s=current.suggestions||[];$('suggestions').innerHTML=s.length?s.map((x,i)=>`<label class="suggestion"><input type="checkbox" class="pick" value="${i}" checked><span class="grow">${secs(x.start)} – ${secs(x.end)}</span><span class="muted">${Math.round(x.end-x.start)}秒 · カット候補</span></label>`).join(''):'<p class="hint">候補はありません。解析しても元動画はカットされません。</p>';$('apply').disabled=!s.length}
