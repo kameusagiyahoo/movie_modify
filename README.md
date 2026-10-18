@@ -48,6 +48,33 @@ No media bytes are duplicated by this EDL history. These are backups on the
 **same disk**, so they do not survive drive failure or manual removal of the
 data directory. FFmpeg render jobs do not yet survive server restarts.
 
+## R-05: inspect and repair failed 360° subject tracking
+
+The offline OpenCV tracker **does not identify a person by face**. It checks
+CSRT proposals against the original appearance template. When the appearance
+is unreliable or more than one plausible person matches, the camera holds the
+last trusted direction and retries only in a gradually wider local search.
+
+Tracking now records the **source-time loss intervals** in the EDL's
+`tracking_gaps` field. In the local advanced editor, select a blue follow
+segment to see the **要確認** time buttons. Tapping one seeks to the end of
+the unreliable stretch and opens the 360° panorama for inspection.
+
+To fix a mistaken track without throwing away the good beginning:
+
+1. Seek to a frame **after** the occlusion when the desired person is visible.
+2. Enable **現在の再生位置から追尾を修正（前半を保持）**.
+3. Tap the person in the panorama and press **選択した人物を自動追尾**.
+4. The PC recomputes the **suffix only**. Earlier keyframes and earlier
+   unresolved gaps are preserved. Edits still require an explicit save, and
+   concurrent revisions are rejected.
+
+The local FFmpeg/OpenCV integration and pure-Python EDL tests check gap
+reporting, splitting, and revision-safe partial retracking. Accuracy on real
+family footage and iPhone Safari still needs evaluation. This approach
+prevents some obvious drift; it does not guarantee correct re-identification
+after occlusion or person crossings.
+
 ## R-03 / R-04: safe multi-device edits and resumable local transfer
 
 The Windows/Linux backend now stores an integer **edit_revision** with each
