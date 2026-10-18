@@ -136,3 +136,41 @@ def test_tracker_freezes_during_synthetic_occlusion_and_marks_warning(tmp_path):
     # similarly colored region elsewhere in the panorama.
     assert abs(keyframes[5]["yaw"]-keyframes[4]["yaw"]) < 2
     assert abs(keyframes[6]["yaw"]-keyframes[5]["yaw"]) < 2
+
+
+def test_fast_teleporting_lookalike_is_rejected_but_seam_crossing_allowed():
+    state = RecoveryState()
+    width, height = 960, 480
+    assert state.plausible_motion(953, 200, 12, 207, width, height)
+    assert not state.plausible_motion(953, 200, 400, 207, width, height)
+    assert not state.plausible_motion(70, 200, 77, 440, width, height)
+    assert state.rejected_jumps == 2
+    assert "飛び移り候補の拒否2回" in state.warning(4)
+
+
+def test_reacquisition_requires_two_consecutive_spatially_consistent_samples():
+    state = RecoveryState()
+    for _ in range(4):
+        state.advance(False)
+    # A one-frame lookalike is not sufficient to re-aim the camera.
+    assert not state.confirm_reacquisition(955, 240, 960, 480)
+    assert state.awaiting_confirmation == 1
+    assert state.missed == 4
+    # Another plausible match across the seam corroborates a recovery.
+    assert state.confirm_reacquisition(8, 244, 960, 480)
+    assert state.advance(True) == "recovered"
+    assert state.recovered == 1
+    assert state.missed == 0
+    assert state.pending_location is None
+
+
+def test_candidate_switch_discards_single_frame_recovery():
+    state = RecoveryState(missed=3)
+    assert not state.confirm_reacquisition(100, 100, 960, 480)
+    # A competing person appears far from the previous proposed position.
+    assert not state.confirm_reacquisition(430, 100, 960, 480)
+    assert state.pending_count == 1
+    assert state.pending_location == (430, 100)
+    assert state.confirm_reacquisition(431, 101, 960, 480)
+    state.advance(True)
+    assert state.recovered == 1
