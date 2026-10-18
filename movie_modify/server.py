@@ -26,6 +26,7 @@ from .core import apply_suggestions, fresh_segment, normalize_segments
 from .media import (auto_editor_suggestions, available, create_proxy, inspect_video,
                     panorama_frame, preview_frame, render, silence_suggestions, create_panorama_proxy)
 from .tracking import track_panorama
+from .benchmark import CASES as BENCHMARK_CASES, run_suite as run_benchmark_suite
 from .uploads import UploadStore, UploadIssue, MAX_CHUNK_BYTES
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -76,6 +77,13 @@ class TrackPayload(BaseModel):
     box: float = 0.10
     expected_revision: int
     start_time: float | None = None
+
+
+class BenchmarkPayload(BaseModel):
+    cases: list[str] = list(BENCHMARK_CASES)
+    seed: int = 103
+    fps: int = 4
+    duration: float = 5.0
 
 
 class UploadStartPayload(BaseModel):
@@ -286,6 +294,58 @@ def job_detail(job_id: str):
     if job_id not in JOBS:
         raise HTTPException(404, "Job not found")
     return JOBS[job_id]
+
+
+# Synthetic evaluation never uploads the user's footage. Reports contain
+# generated-camera positions/errors and remain in local data/benchmarks/.
+BENCHMARK_DIRECTORY = STORAGE / "benchmarks"
+
+
+@app.post("/api/benchmarks/run")
+def benchmark_start(payload: BenchmarkPayload):
+    if importlib.util.find_spec("cv2") is None:
+        raise HTTPException(503, "Install requirements-tracking.txt for OpenCV")
+    if not (available("ffmpeg") and available("ffprobe")):
+        raise HTTPException(503, "FFmpeg and FFprobe required")
+    if not (payload.cases and len(set(payload.cases)) == len(payload.cases)
+            and all(case in BENCHMARK_CASES for case in payload.cases)
+            and 2 <= payload.fps <= 10 and 2 <= payload.duration <= 15
+            and 0 <= payload.seed < 2**31):
+        raise HTTPException(422, "Invalid synthetic benchmark configuration")
+    return _job(lambda update: run_benchmark_suite(
+        BENCHMARK_DIRECTORY, cases=payload.cases, seed=payload.seed,
+        fps=payload.fps, duration=payload.duration, callback=update
+    ))
+
+
+@app.get("/api/benchmarks")
+def benchmark_list():
+    if not BENCHMARK_DIRECTORY.exists():
+        return []
+    reports = []
+    for source in sorted(BENCHMARK_DIRECTORY.glob("*.json"),
+                         key=lambda p: p.stat().st_mtime, reverse=True)[:25]:
+        try:
+            report = json.loads(source.read_text(encoding="utf-8"))
+            reports.append({k: report[k] for k in (
+                "id", "created_at", "tracker_version", "configuration", "summary"
+            )})
+        except (KeyError, ValueError, OSError):
+            continue
+    return reports
+
+
+@app.get("/api/benchmarks/{report_id}")
+def benchmark_report(report_id: str):
+    if not re.fullmatch(r"[0-9a-f]{32}", report_id):
+        raise HTTPException(404, "Benchmark report not found")
+    path = BENCHMARK_DIRECTORY / (report_id + ".json")
+    if not path.is_file():
+        raise HTTPException(404, "Benchmark report not found")
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise HTTPException(409, "Benchmark report damaged") from exc
 
 
 @app.get("/api/projects")
