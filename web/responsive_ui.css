@@ -126,3 +126,12 @@ body{overscroll-behavior-y:contain}
 .edit-history-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(105px,1fr));gap:6px;margin-top:7px}
 .edit-history-list button{font-size:11px;min-height:38px;white-space:normal;text-align:left}
 .edit-history-list button.current{border-color:var(--mint);color:var(--mint)}
+
+
+/* R-05 recovery diagnostics: touch-sized jumps to each lost subject interval. */
+.tracking-gaps{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0}
+.tracking-gaps:empty{display:none}
+.tracking-gaps .gap-button{min-height:44px;padding:8px 11px;border-color:#bd8652;color:#f4d6a6;
+  background:#3b2d24;font-weight:650;white-space:normal}
+.tracking-gaps .gap-button:focus-visible{outline:2px solid #f4d6a6;outline-offset:2px}
+#trackFromHere{min-width:18px;min-height:18px}
