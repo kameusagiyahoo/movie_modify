@@ -120,14 +120,18 @@ def test_tracker_freezes_during_synthetic_occlusion_and_marks_warning(tmp_path):
     proc = subprocess.run(command, input=b"".join(f.tobytes() for f in frames),
                           capture_output=True, timeout=30)
     assert proc.returncode == 0, proc.stderr[-500:]
-    keyframes, warning = track_panorama(
-        src, 0, 3.2, x=.25, y=.5, box=.10, fps=fps
+    keyframes, warning, gaps = track_panorama(
+        src, 0, 3.2, x=.25, y=.5, box=.10, fps=fps,
+        include_diagnostics=True,
     )
     assert len(keyframes) >= 9
     assert keyframes[0]["time"] == 0
     assert keyframes[-1]["time"] == 3.2
     assert all(-180 <= p["yaw"] <= 180 for p in keyframes)
     assert "未検出" in warning and "画角を維持" in warning
+    assert gaps, "Occlusion must be reported as inspectable time intervals"
+    assert all(0 <= gap["start"] < gap["end"] <= 3.2 for gap in gaps)
+    assert any(gap["start"] <= 2.1 and gap["end"] >= 1.3 for gap in gaps)
     # When the object disappears, the viewpoint must not drift to any
     # similarly colored region elsewhere in the panorama.
     assert abs(keyframes[5]["yaw"]-keyframes[4]["yaw"]) < 2
