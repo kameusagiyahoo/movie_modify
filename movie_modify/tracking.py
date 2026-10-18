@@ -116,7 +116,7 @@ def _reference_score(cv2, np, tiled, anchor, x, y, width, height):
 
 
 def track_panorama(source, start: float, end: float, x: float, y: float,
-                   box: float = .10, fps: int = 4, callback=None):
+                   box: float = .10, fps: int = 4, callback=None, *, include_diagnostics=False):
     try:
         import cv2
         import numpy as np
@@ -145,6 +145,8 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
     adaptive = None
     frames = []
     state = RecoveryState()
+    gaps: list[dict] = []
+    lost_from: float | None = None
 
     def make_tracker(frame, xcoord, ycoord):
         if not factory:
@@ -214,6 +216,10 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
                 if candidate is not None:
                     old_missing=state.missed
                     cx, cy, confidence = candidate
+                    if lost_from is not None:
+                        gaps.append({"start": round(lost_from, 3),
+                                     "end": round(min(end, start+index/fps), 3)})
+                        lost_from = None
                     result=state.advance(True)
                     if result=="recovered" or tracker is None or old_missing>0:
                         tracker=make_tracker(frame,cx,cy)
@@ -226,6 +232,8 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
                         if patch.shape == adaptive.shape:
                             adaptive=cv2.addWeighted(adaptive,.985,patch,.015,0)
                 else:
+                    if lost_from is None:
+                        lost_from = min(end, start+index/fps)
                     state.advance(False)
                     tracker=None
                     # cx/cy deliberately unchanged: freeze the last reliable
@@ -239,6 +247,8 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
                 callback(min(88,round(88*(now-start)/(end-start))))
         if not frames:
             raise RuntimeError("Unable to decode footage for tracking")
+        if lost_from is not None and lost_from < end:
+            gaps.append({"start": round(lost_from, 3), "end": round(end, 3)})
         frames[0]["time"]=round(start,4)
         if frames[-1]["time"]<end:
             frames.append({**frames[-1],"time":round(end,4)})
@@ -247,4 +257,6 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
         if proc.poll() is None:
             proc.kill()
         proc.wait()
+    if include_diagnostics:
+        return frames, state.warning(fps), gaps
     return frames, state.warning(fps)
