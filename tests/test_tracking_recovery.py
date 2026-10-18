@@ -90,3 +90,45 @@ def test_adaptive_radius_remains_local_even_after_long_occlusion():
     assert state.radius(190, 960) == 432
     assert state.recovered == 0
     assert state.warning(4).find("最長連続25.0秒") >= 0
+
+
+@pytest.mark.skipif(__import__("shutil").which("ffmpeg") is None,
+                    reason="FFmpeg required for synthetic tracking video")
+def test_tracker_freezes_during_synthetic_occlusion_and_marks_warning(tmp_path):
+    cv2 = pytest.importorskip("cv2")
+    np = pytest.importorskip("numpy")
+    import subprocess
+    from movie_modify.tracking import track_panorama
+
+    src = tmp_path / "synthetic_360.mp4"
+    width, height, fps = 320, 160, 3
+    rng = np.random.default_rng(531)
+    target = rng.integers(30, 230, size=(32, 32, 3), dtype=np.uint8)
+    frames = []
+    for i in range(10):
+        frame = np.full((height,width,3), 18, dtype=np.uint8)
+        if i not in (4,5,6):  # Object is absent for one full second.
+            frame[64:96,64:96,:] = target
+        frames.append(frame)
+    command = [
+        "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+        "-f", "rawvideo", "-pix_fmt", "bgr24", "-s", "320x160",
+        "-r", str(fps), "-i", "-", "-an", "-c:v", "libx264",
+        "-preset", "ultrafast", "-crf", "8", "-pix_fmt", "yuv420p",
+        str(src)
+    ]
+    proc = subprocess.run(command, input=b"".join(f.tobytes() for f in frames),
+                          capture_output=True, timeout=30)
+    assert proc.returncode == 0, proc.stderr[-500:]
+    keyframes, warning = track_panorama(
+        src, 0, 3.2, x=.25, y=.5, box=.10, fps=fps
+    )
+    assert len(keyframes) >= 9
+    assert keyframes[0]["time"] == 0
+    assert keyframes[-1]["time"] == 3.2
+    assert all(-180 <= p["yaw"] <= 180 for p in keyframes)
+    assert "未検出" in warning and "画角を維持" in warning
+    # When the object disappears, the viewpoint must not drift to any
+    # similarly colored region elsewhere in the panorama.
+    assert abs(keyframes[5]["yaw"]-keyframes[4]["yaw"]) < 2
+    assert abs(keyframes[6]["yaw"]-keyframes[5]["yaw"]) < 2
