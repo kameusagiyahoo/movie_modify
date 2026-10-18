@@ -107,6 +107,11 @@ async def restrict_api(request: Request, call_next):
     return await call_next(request)
 
 
+@app.get("/benchmark", response_class=HTMLResponse)
+def benchmark_dashboard():
+    return (ROOT / "web" / "benchmark.html").read_text(encoding="utf-8")
+
+
 @app.get("/", response_class=HTMLResponse)
 def homepage():
     return WEB.read_text(encoding="utf-8")
