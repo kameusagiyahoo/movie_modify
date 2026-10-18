@@ -15,6 +15,37 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## Synthetic tracking benchmark (offline, Windows/Linux)
+
+The local detailed editor now provides **06 / 追尾の定量評価**. Press
+**4条件で評価を実行** to benchmark the installed OpenCV tracking algorithm
+on deterministic synthetic equirectangular videos with known target positions.
+It never requires real family footage or external cloud services.
+
+The four scenarios cover normal movement, movement across the 360° seam,
+a temporarily occluded target, and a lookalike distractor. Each report
+contains visible-target camera-centering success within 15 degrees,
+mean/median/P95 angular error, untrusted/lost duration, false tracking during
+occlusion, recovery latency, and processing FPS. On the same machine,
+previous runs with matching seed, duration, sampling rate and scenarios can
+be compared in the UI. Reports persist at \`data/benchmarks/<id>.json\`;
+synthetic MP4 files are removed after the run.
+
+Install \`requirements-tracking.txt\` and FFmpeg first. The same benchmark
+can run headlessly:
+
+\`\`\`bash
+python -m movie_modify.benchmark --output-dir data/benchmarks
+python -m movie_modify.benchmark --cases steady seam --seed 103
+\`\`\`
+
+**Limitations:** This is not person re-identification, a real-video accuracy
+claim or a cross-hardware speed comparison. Synthetic textured blocks do
+not reproduce all challenging conditions in recordings. The static GitHub
+Pages editor does not run the backend benchmark.
+
+See [the canonical benchmark specification](docs/SPECIFICATION.md#85-合成360度追尾の定量評価ベンチマーク).
+
 ## R-05: cautious subject re-acquisition for 360° tracking
 
 The offline OpenCV tracker now validates CSRT positions against the
