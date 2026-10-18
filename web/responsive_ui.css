@@ -135,3 +135,9 @@ body{overscroll-behavior-y:contain}
   background:#3b2d24;font-weight:650;white-space:normal}
 .tracking-gaps .gap-button:focus-visible{outline:2px solid #f4d6a6;outline-offset:2px}
 #trackFromHere{min-width:18px;min-height:18px}
+
+
+/* Non-interactive amber strips above each interval of unreliable tracking. */
+.timeline-scroll .timeline .tracking-gap-marker,
+#timeline .tracking-gap-marker{position:absolute;top:0;z-index:4;height:7px;
+  min-width:2px;pointer-events:none;background:#f0ae5e;border-radius:2px}
