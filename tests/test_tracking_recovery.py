@@ -1,0 +1,92 @@
+"""R-05: conservative recovery decisions without user video or paid APIs."""
+from __future__ import annotations
+
+import pytest
+
+from movie_modify.tracking import RecoveryState, _match_in_region, _reference_score
+
+
+def test_low_confidence_freezes_pose_and_counts_loss():
+    state = RecoveryState()
+    assert state.accepts(.85, .82, csrt=True)
+    assert state.advance(True) == "tracked"
+    assert not state.accepts(.4, .90, csrt=True)
+    assert state.advance(False) == "lost"
+    assert state.missed == 1
+    assert state.lost_frames == 1
+    assert state.max_lost_run == 1
+    assert "直前の画角を維持" in state.warning(4)
+
+
+def test_reacquisition_requires_high_confidence_and_nonambiguous_candidate():
+    state = RecoveryState()
+    for _ in range(9):
+        assert state.advance(False) == "lost"
+    assert state.radius(70, 960) > 70
+    assert state.radius(70, 960) <= 432
+
+    assert not state.accepts(.78, .98, .25)
+    assert not state.accepts(.95, .31, .12)
+    assert not state.accepts(.91, .84, .89)
+    assert state.rejected_ambiguous == 1
+    assert state.accepts(.93, .82, .50)
+    assert state.advance(True) == "recovered"
+    assert state.missed == 0
+    assert state.recovered == 1
+    assert state.max_lost_run == 9
+    assert state.lost_frames == 9
+    assert "再発見1回" in state.warning(4)
+
+
+def test_nan_never_counts_as_tracked():
+    state = RecoveryState()
+    assert not state.accepts(float("nan"), .91)
+    assert not state.accepts(.91, float("inf"))
+    assert state.advance(False) == "lost"
+
+
+def test_360_seam_search_and_ambiguous_twins():
+    cv2 = pytest.importorskip("cv2")
+    np = pytest.importorskip("numpy")
+    rng = np.random.default_rng(103)
+    width, height = 120, 60
+    pattern = rng.integers(50, 240, size=(12, 16), dtype=np.uint8)
+    image = np.zeros((height, width), dtype=np.uint8)
+    center_x, center_y = 117, 29
+    for col in range(pattern.shape[1]):
+        xx = (center_x - pattern.shape[1]//2 + col) % width
+        image[center_y-6:center_y+6, xx] = pattern[:, col]
+    tiled = np.concatenate((image, image, image), axis=1)
+    score = _reference_score(cv2, np, tiled, pattern,
+                             center_x, center_y, width, height)
+    assert score >= .99
+    match = _match_in_region(cv2, np, tiled, pattern,
+                            center_x, center_y, 35, width, height)
+    assert match is not None
+    cx, cy, similarity, _runner = match
+    assert min(abs(cx-center_x), width-abs(cx-center_x)) <= 1
+    assert abs(cy-center_y) <= 1
+    assert similarity >= .99
+
+    # Two truly identical appearances in a search region must be ambiguous.
+    second = image.copy()
+    for col in range(pattern.shape[1]):
+        xx = (57 - pattern.shape[1]//2 + col) % width
+        second[center_y-6:center_y+6,xx] = pattern[:, col]
+    tiled = np.concatenate((second,second,second),axis=1)
+    match = _match_in_region(cv2, np, tiled, pattern,
+                            center_x, center_y, 80, width, height)
+    assert match is not None
+    assert match[2] > .99
+    assert match[3] is not None and match[3] > .99
+    state=RecoveryState(missed=5)
+    assert not state.accepts(match[2], .99, match[3])
+
+
+def test_adaptive_radius_remains_local_even_after_long_occlusion():
+    state = RecoveryState()
+    for _ in range(100):
+        state.advance(False)
+    assert state.radius(190, 960) == 432
+    assert state.recovered == 0
+    assert state.warning(4).find("最長連続25.0秒") >= 0
