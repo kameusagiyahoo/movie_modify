@@ -271,7 +271,12 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
                             and state.plausible_motion(cx, cy, x_try, y_try, w, h)):
                             candidate = (x_try, y_try, score)
 
-                if candidate is not None and not state.confirm_reacquisition(
+                if candidate is None:
+                    # Two observations must be consecutive, not just similar
+                    # samples separated by an arbitrary number of lost frames.
+                    state.pending_location = None
+                    state.pending_count = 0
+                elif not state.confirm_reacquisition(
                     candidate[0], candidate[1], w, h
                 ):
                     candidate = None
