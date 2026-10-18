@@ -21,6 +21,59 @@ class RecoveryState:
     max_lost_run: int = 0
     recovered: int = 0
     rejected_ambiguous: int = 0
+    rejected_jumps: int = 0
+    awaiting_confirmation: int = 0
+    pending_location: tuple[float, float] | None = None
+    pending_count: int = 0
+
+    def plausible_motion(self, old_x: float, old_y: float,
+                         new_x: float, new_y: float, width: int,
+                         height: int) -> bool:
+        """Reject implausible per-sample teleportation, even across a 360 seam.
+
+        After an occlusion the search radius increases, so its spatial gate
+        must expand too. Purely appearance-based matches may be lookalikes.
+        """
+        if not all(math.isfinite(v) for v in (old_x, old_y, new_x, new_y)):
+            return False
+        horizontal = abs((new_x-old_x) % width)
+        horizontal = min(horizontal, width-horizontal)
+        vertical = abs(new_y-old_y)
+        reach = min(.45, .22 + self.missed * .035)
+        plausible = horizontal <= width*reach and vertical <= height*reach
+        if not plausible:
+            self.rejected_jumps += 1
+        return plausible
+
+    def confirm_reacquisition(self, x: float, y: float,
+                              width: int, height: int) -> bool:
+        """Require two spatially consistent frames before resuming a lost track.
+
+        Merely spotting a lookalike for one frame cannot move the camera.
+        Tracking stays frozen until a second observation corroborates it.
+        """
+        if self.missed == 0:
+            self.pending_location = None
+            self.pending_count = 0
+            return True
+        previous = self.pending_location
+        if previous is not None:
+            horizontal = abs((x-previous[0]) % width)
+            horizontal = min(horizontal, width-horizontal)
+            vertical = abs(y-previous[1])
+            if horizontal <= .12*width and vertical <= .12*height:
+                self.pending_count += 1
+            else:
+                self.pending_count = 1
+        else:
+            self.pending_count = 1
+        self.pending_location = (x, y)
+        if self.pending_count < 2:
+            self.awaiting_confirmation += 1
+            return False
+        self.pending_location = None
+        self.pending_count = 0
+        return True
 
     def radius(self, base: int, image_width: int) -> int:
         # Never search the entire 360° panorama solely to find someone similar.
@@ -50,6 +103,8 @@ class RecoveryState:
             if was_lost:
                 self.recovered += 1
             self.missed = 0
+            self.pending_location = None
+            self.pending_count = 0
             return "recovered" if was_lost else "tracked"
         self.missed += 1
         self.lost_frames += 1
@@ -57,14 +112,15 @@ class RecoveryState:
         return "lost"
 
     def warning(self, frame_rate: float) -> str:
-        if not self.lost_frames and not self.rejected_ambiguous:
+        if not self.lost_frames and not self.rejected_ambiguous and not self.rejected_jumps:
             return ""
         lost = self.lost_frames / max(frame_rate, 1)
         max_gap = self.max_lost_run / max(frame_rate, 1)
         return (
             f"追尾が不安定です（未検出 {self.lost_frames}フレーム／約{lost:.1f}秒、"
             f"最長連続{max_gap:.1f}秒、再発見{self.recovered}回、"
-            f"曖昧な候補の拒否{self.rejected_ambiguous}回）。"
+            f"曖昧な候補の拒否{self.rejected_ambiguous}回、"
+            f"飛び移り候補の拒否{self.rejected_jumps}回）。"
             "未検出時は直前の画角を維持しました。"
             "似た人物・遮蔽・カメラのつなぎ目を再生して手動確認してください。"
         )
@@ -194,7 +250,8 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
                                 similarity = _reference_score(
                                     cv2, np, tiled, anchor, x_try, y_try, w, h
                                 )
-                                if state.accepts(similarity, similarity, csrt=True):
+                                if (state.accepts(similarity, similarity, csrt=True)
+                                    and state.plausible_motion(cx, cy, x_try, y_try, w, h)):
                                     candidate = (x_try, y_try, similarity)
                     except Exception:
                         tracker = None
@@ -210,8 +267,14 @@ def track_panorama(source, start: float, end: float, x: float, y: float,
                         anchor_score = _reference_score(
                             cv2,np,tiled,anchor,x_try,y_try,w,h
                         )
-                        if state.accepts(score, anchor_score, runner_up):
+                        if (state.accepts(score, anchor_score, runner_up)
+                            and state.plausible_motion(cx, cy, x_try, y_try, w, h)):
                             candidate = (x_try, y_try, score)
+
+                if candidate is not None and not state.confirm_reacquisition(
+                    candidate[0], candidate[1], w, h
+                ):
+                    candidate = None
 
                 if candidate is not None:
                     old_missing=state.missed
