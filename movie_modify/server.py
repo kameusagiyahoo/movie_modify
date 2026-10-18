@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import gzip
 import hmac
+import math
 import importlib.util
 import json
 import os
@@ -74,6 +75,7 @@ class TrackPayload(BaseModel):
     y: float
     box: float = 0.10
     expected_revision: int
+    start_time: float | None = None
 
 
 class UploadStartPayload(BaseModel):
@@ -544,11 +546,23 @@ def track(project_id: str, payload: TrackPayload):
         raise HTTPException(422, "Invalid target")
     if segment["end"] - segment["start"] > 1200:
         raise HTTPException(422, "Split into segments of 20 minutes or less")
+    # A human can reselect the person at a later source-time position,
+    # preserving reliable tracking before that point.
+    begin = segment["start"] if payload.start_time is None else payload.start_time
+    if not math.isfinite(begin) or begin < segment["start"] - .001 or begin > segment["end"] - .25:
+        raise HTTPException(422, "Restart time must be inside the selected segment")
+    begin = max(segment["start"], begin)
+    if begin > segment["start"] + .05 and (
+        segment.get("mode") != "follow" or not segment.get("keyframes")
+    ):
+        raise HTTPException(422, "First track this segment before correcting its suffix")
     path = _directory(project_id) / project["source_name"]
 
     def work(update):
-        keys, warning = track_panorama(path, segment["start"], segment["end"],
-                                       payload.x, payload.y, payload.box, callback=update)
+        keys, warning, gaps = track_panorama(
+            path, begin, segment["end"], payload.x, payload.y,
+            payload.box, callback=update, include_diagnostics=True
+        )
         with PROJECT_LOCK:
             latest = _project(project_id)
             # A saved edit while the tracker was busy invalidates the result.
@@ -558,7 +572,28 @@ def track(project_id: str, payload: TrackPayload):
             candidate = latest["segments"][payload.segment_index]
             if candidate != segment:
                 raise RuntimeError("Selected segment changed during tracking")
-            candidate.update(mode="follow", keyframes=keys, tracking_warning=warning)
+            if begin > segment["start"] + .05:
+                prefix = [k for k in segment.get("keyframes", [])
+                          if k["time"] < begin - .0001]
+                # Keep a key just before the correction boundary so the
+                # earlier trajectory remains unchanged by interpolation.
+                before = max(segment["start"], round(begin - .01, 4))
+                if before > segment["start"] and (
+                    not prefix or before > prefix[-1]["time"] + .00001
+                ):
+                    from .core import camera_at
+                    prefix.append({"time": before, **camera_at(segment, before)})
+                keys = prefix + keys
+                previous = [
+                    {"start": g["start"], "end": min(g["end"], begin)}
+                    for g in segment.get("tracking_gaps", [])
+                    if g["start"] < begin and min(g["end"], begin) > g["start"]
+                ]
+                gaps = previous + gaps
+                if previous:
+                    warning = ("前半にも追尾できなかった時間帯があります。 " + warning).strip()
+            candidate.update(mode="follow", keyframes=keys,
+                             tracking_gaps=gaps, tracking_warning=warning)
             normalized = normalize_segments(latest["segments"], latest["duration"])
             _commit_edits(latest, normalized)
         update(100)
