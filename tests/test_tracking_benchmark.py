@@ -5,6 +5,7 @@ import importlib
 import json
 import math
 import shutil
+import subprocess
 import time
 from pathlib import Path
 
@@ -154,3 +155,12 @@ def test_ui_has_run_and_comparison_controls():
     assert "startSyntheticBenchmark" in app
     assert "showBenchmarkReport" in app
     assert "mean_success_rate_visible" in app
+
+
+@pytest.mark.skipif(not shutil.which("node"), reason="Node not installed")
+def test_standalone_benchmark_inline_javascript_syntax(tmp_path):
+    html=(Path(__file__).resolve().parents[1] / "web/benchmark.html").read_text(encoding="utf-8")
+    script=html.rsplit("<script>",1)[1].split("</script>",1)[0]
+    dest=tmp_path/"benchmark.js"
+    dest.write_text(script,encoding="utf-8")
+    subprocess.run(["node","--check",str(dest)],check=True,timeout=20)
