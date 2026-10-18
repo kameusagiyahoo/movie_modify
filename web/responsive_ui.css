@@ -141,3 +141,13 @@ body{overscroll-behavior-y:contain}
 .timeline-scroll .timeline .tracking-gap-marker,
 #timeline .tracking-gap-marker{position:absolute;top:0;z-index:4;height:7px;
   min-width:2px;pointer-events:none;background:#f0ae5e;border-radius:2px}
+
+
+/* R-05 review queue: readable in narrow iPhone portrait mode. */
+.track-review-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  flex-wrap:wrap;margin-top:8px}
+#gapSummary{flex:1;min-width:130px;color:#f4d6a6;line-height:1.5}
+#nextTrackingGap{min-height:44px;border-color:#bd8652;color:#f4d6a6;
+  padding:9px 12px;white-space:normal}
+@media(max-width:560px){.track-review-toolbar{display:grid;grid-template-columns:1fr}
+  #nextTrackingGap{width:100%}}
