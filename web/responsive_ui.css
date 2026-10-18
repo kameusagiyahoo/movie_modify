@@ -151,3 +151,18 @@ body{overscroll-behavior-y:contain}
   padding:9px 12px;white-space:normal}
 @media(max-width:560px){.track-review-toolbar{display:grid;grid-template-columns:1fr}
   #nextTrackingGap{width:100%}}
+
+
+/* Offline tracking benchmark: scrollable comparison on iPhone and desktop. */
+#benchmarkPanel{display:grid;gap:11px}
+.benchmark-actions{display:flex;flex-wrap:wrap;gap:8px}
+.benchmark-actions button{min-height:44px}
+.benchmark-summary{font-size:12px;display:grid;gap:4px;line-height:1.5;
+  border:1px solid #32535a;border-radius:10px;padding:11px;color:#c5eee4}
+.benchmark-table-scroll{overflow-x:auto;max-width:100%;-webkit-overflow-scrolling:touch}
+.benchmark-table{width:100%;border-collapse:collapse;min-width:430px;font-size:12px}
+.benchmark-table th,.benchmark-table td{padding:9px 7px;text-align:right;border-bottom:1px solid #34495a;white-space:nowrap}
+.benchmark-table th:first-child,.benchmark-table td:first-child{text-align:left}
+#benchmarkChoice{width:100%;max-width:100%}
+@media(max-width:600px){.benchmark-actions button{flex:1;min-width:120px}
+  .benchmark-table{font-size:11px}}
