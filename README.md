@@ -15,6 +15,25 @@ A **working local MVP** for standard smartphone MP4/MOV and **already-stitched e
 - Render the kept intervals to 720p or 1080p 16:9 MP4 with original audio, using FFmpeg; watch job progress and download the output.
 - Phone-friendly local Web UI; projects and original media stay on disk in `data/` (gitignored).
 
+## R-05: cautious subject re-acquisition for 360° tracking
+
+The offline OpenCV tracker now validates CSRT positions against the
+**unchanged first-frame appearance** selected by the user. When the selected
+person is occluded or the match is unreliable, it **holds the last trusted
+camera orientation** rather than drifting to a visually similar person.
+Re-acquisition searches a widening *local* region of the stitched panorama,
+including the 360° seam, and requires stronger evidence after a long gap.
+Ambiguous competing matches are rejected, and the project records a warning
+with lost-frame duration and recovery counts.
+
+This is not facial recognition or an identity guarantee: long occlusions,
+outfit changes, camera motion, and similar people can still cause a lost track.
+Review the generated follow segment and use manual scenery/keyframes when
+necessary. The change is tested against synthetic occlusion clips; **real
+family footage and iPhone preview performance remain to be verified**.
+
+See [the integrated specification](docs/SPECIFICATION.md#84-360度人物追尾).
+
 ## R-10 (partial): PC-side edit revision backups
 
 Every committed EDL change archives the **previous** source-timeline edits in
