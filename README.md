@@ -1,5 +1,8 @@
 # Movie Modify — privacy-first modular video editor
 
+> **[コード構造をブロック図で見る（CodeBoarding）](https://app.codeboarding.org/kameusagiyahoo/movie_modify)** — ChatGPTが主要17ファイルを分析し、8つの主要ブロック・20の下位ブロックに整理しました。CodeBoarding側でLLMを起動する必要はありません。表示されない場合は[閲覧手順](docs/codeboarding.md)を参照してください。
+
+
 > **[統合仕様書（最新版・日本語・構成図付き）](docs/SPECIFICATION.md)** — 機能要件、画面設計、システム構成、編集JSON、API、プラットフォーム、検証状況、ロードマップの**正本**。このREADMEは概要と起動案内です。
 
 A **working local MVP** for standard smartphone MP4/MOV and **already-stitched equirectangular 360° video**. Separate import adapters, analysis plug-ins, edit decisions and FFmpeg renderer keep the system extensible. Videos are not uploaded to a cloud service.
