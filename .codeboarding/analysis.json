@@ -1112,7 +1112,7 @@
       "file_path": "web/index.html",
       "qualified_name": "web.index.runTrack",
       "start_line": 540,
-      "end_line": 563,
+      "end_line": 562,
       "type": "FUNCTION",
       "content_hash": ""
     },
@@ -1744,7 +1744,7 @@
       "file_path": "movie_modify/server.py",
       "qualified_name": "movie_modify.server.export",
       "start_line": 773,
-      "end_line": 779,
+      "end_line": 778,
       "type": "FUNCTION",
       "content_hash": ""
     },
@@ -1816,7 +1816,7 @@
       "file_path": "movie_modify/core.py",
       "qualified_name": "movie_modify.core.parse_auto_editor_v1",
       "start_line": 165,
-      "end_line": 178,
+      "end_line": 177,
       "type": "FUNCTION",
       "content_hash": ""
     },
@@ -1920,7 +1920,7 @@
       "file_path": "movie_modify/media.py",
       "qualified_name": "movie_modify.media.create_panorama_proxy",
       "start_line": 188,
-      "end_line": 202,
+      "end_line": 201,
       "type": "FUNCTION",
       "content_hash": ""
     },
@@ -2000,7 +2000,7 @@
       "file_path": "movie_modify/tracking.py",
       "qualified_name": "movie_modify.tracking.track_panorama",
       "start_line": 174,
-      "end_line": 331,
+      "end_line": 330,
       "type": "FUNCTION",
       "content_hash": ""
     },
@@ -2032,7 +2032,7 @@
       "file_path": "movie_modify/uploads.py",
       "qualified_name": "movie_modify.uploads.UploadStore",
       "start_line": 29,
-      "end_line": 143,
+      "end_line": 142,
       "type": "CLASS",
       "content_hash": ""
     },
@@ -2112,7 +2112,7 @@
       "file_path": "movie_modify/uploads.py",
       "qualified_name": "movie_modify.uploads.UploadStore.mark_complete",
       "start_line": 135,
-      "end_line": 143,
+      "end_line": 142,
       "type": "METHOD",
       "content_hash": ""
     },
@@ -2571,7 +2571,7 @@
           "qualified_name": "web.index.runTrack",
           "reference_file": "web/index.html",
           "reference_start_line": 540,
-          "reference_end_line": 563
+          "reference_end_line": 562
         },
         {
           "qualified_name": "web.responsive_ui.mount",
@@ -3062,7 +3062,7 @@
               "qualified_name": "movie_modify.core.parse_auto_editor_v1",
               "reference_file": "movie_modify/core.py",
               "reference_start_line": 165,
-              "reference_end_line": 178
+              "reference_end_line": 177
             }
           ],
           "source_cluster_ids": [],
@@ -3250,7 +3250,7 @@
           "qualified_name": "movie_modify.tracking.track_panorama",
           "reference_file": "movie_modify/tracking.py",
           "reference_start_line": 174,
-          "reference_end_line": 331
+          "reference_end_line": 330
         },
         {
           "qualified_name": "movie_modify.tracking.RecoveryState",
@@ -3380,7 +3380,7 @@
           "qualified_name": "movie_modify.uploads.UploadStore",
           "reference_file": "movie_modify/uploads.py",
           "reference_start_line": 29,
-          "reference_end_line": 143
+          "reference_end_line": 142
         }
       ],
       "source_cluster_ids": [],
