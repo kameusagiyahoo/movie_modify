@@ -1,0 +1,3835 @@
+{
+  "metadata": {
+    "generated_at": "2026-10-22T09:00:00+09:00",
+    "source_tree_hash": "",
+    "repo_name": "movie_modify",
+    "depth_level": 2,
+    "depth_cap": 2,
+    "file_coverage_summary": {
+      "total_files": 17,
+      "analyzed": 17,
+      "not_analyzed": 0,
+      "not_analyzed_by_reason": {}
+    },
+    "tree_spec": {}
+  },
+  "description": "Movie Modify はGitHub Pages上のブラウザ編集と、Windows/Linux PC内で動くFastAPI・FFmpeg・OpenCVによる動画解析/人物追尾/書き出しを統合する非破壊型動画編集プロジェクトです。ブラウザから手動同期したEDLはPCのプロジェクト管理に保存され、ローカルのJSON履歴や再開可能アップロードでデータを保護します。追尾結果は合成ベンチマークで評価できます。",
+  "files": {
+    "docs/index.html": {
+      "method_keys": [],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "docs/pages.js": {
+      "method_keys": [
+        "docs/pages.js|docs.pages.notify",
+        "docs/pages.js|docs.pages.downloadBlob",
+        "docs/pages.js|docs.pages.validateSegment",
+        "docs/pages.js|docs.pages.editorSnapshot",
+        "docs/pages.js|docs.pages.validateSnapshot",
+        "docs/pages.js|docs.pages.setHistoryStatus",
+        "docs/pages.js|docs.pages.drawEditHistory",
+        "docs/pages.js|docs.pages.checkpoint",
+        "docs/pages.js|docs.pages.applySnapshot",
+        "docs/pages.js|docs.pages.undoEdit",
+        "docs/pages.js|docs.pages.redoEdit",
+        "docs/pages.js|docs.pages.initializeHistory",
+        "docs/pages.js|docs.pages.cameraAt",
+        "docs/pages.js|docs.pages.findIndex",
+        "docs/pages.js|docs.pages.selectedAt",
+        "docs/pages.js|docs.pages.viewerPose",
+        "docs/pages.js|docs.pages.teardown",
+        "docs/pages.js|docs.pages.openVideo",
+        "docs/pages.js|docs.pages.onVideoReady",
+        "docs/pages.js|docs.pages.syncControls",
+        "docs/pages.js|docs.pages.recordSupport",
+        "docs/pages.js|docs.pages.showSegment",
+        "docs/pages.js|docs.pages.timelineBars",
+        "docs/pages.js|docs.pages.renderTimeline",
+        "docs/pages.js|docs.pages.updatePlayhead",
+        "docs/pages.js|docs.pages.updatePlayback",
+        "docs/pages.js|docs.pages.resizeZoom",
+        "docs/pages.js|docs.pages.sliceSegment",
+        "docs/pages.js|docs.pages.splitAt",
+        "docs/pages.js|docs.pages.toggleCut",
+        "docs/pages.js|docs.pages.selectScenery",
+        "docs/pages.js|docs.pages.updateDraft",
+        "docs/pages.js|docs.pages.addKey",
+        "docs/pages.js|docs.pages.resetAngle",
+        "docs/pages.js|docs.pages.projectJson",
+        "docs/pages.js|docs.pages.saveJson",
+        "docs/pages.js|docs.pages.applyProject",
+        "docs/pages.js|docs.pages.selectMime",
+        "docs/pages.js|docs.pages.cleanup",
+        "docs/pages.js|docs.pages.fail",
+        "docs/pages.js|docs.pages.exportRecording",
+        "docs/pages.js|docs.pages.switchTab",
+        "docs/pages.js|docs.pages.bind"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "docs/live_preview.js": {
+      "method_keys": [
+        "docs/live_preview.js|docs.live_preview.compile",
+        "docs/live_preview.js|docs.live_preview.LivePanoramaPreview"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "docs/edit_history.js": {
+      "method_keys": [
+        "docs/edit_history.js|docs.edit_history.clone",
+        "docs/edit_history.js|docs.edit_history.equal",
+        "docs/edit_history.js|docs.edit_history.hash",
+        "docs/edit_history.js|docs.edit_history.EditHistory"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "web/index.html": {
+      "method_keys": [
+        "web/index.html|web.index.alertMsg",
+        "web/index.html|web.index.api",
+        "web/index.html|web.index.start",
+        "web/index.html|web.index.loadProjects",
+        "web/index.html|web.index.openProject",
+        "web/index.html|web.index.drawEditor",
+        "web/index.html|web.index.historySnapshot",
+        "web/index.html|web.index.validateHistorySnapshot",
+        "web/index.html|web.index.historyControls",
+        "web/index.html|web.index.drawHistorySteps",
+        "web/index.html|web.index.historyCheckpoint",
+        "web/index.html|web.index.historyApply",
+        "web/index.html|web.index.historyUndo",
+        "web/index.html|web.index.historyRedo",
+        "web/index.html|web.index.exportConflictedDraft",
+        "web/index.html|web.index.initializeEditHistory",
+        "web/index.html|web.index.loadServerEditHistory",
+        "web/index.html|web.index.loadBenchmarkReports",
+        "web/index.html|web.index.showBenchmarkReport",
+        "web/index.html|web.index.downloadBenchmarkReport",
+        "web/index.html|web.index.startSyntheticBenchmark",
+        "web/index.html|web.index.drawSuggestions",
+        "web/index.html|web.index.navigateTrackingGap",
+        "web/index.html|web.index.nextTrackingGap",
+        "web/index.html|web.index.drawSegments",
+        "web/index.html|web.index.splitHere",
+        "web/index.html|web.index.toggleSelected",
+        "web/index.html|web.index.saveSegments",
+        "web/index.html|web.index.updateFrame",
+        "web/index.html|web.index.analyzeVideo",
+        "web/index.html|web.index.applySelected",
+        "web/index.html|web.index.renderVideo",
+        "web/index.html|web.index.watchJob",
+        "web/index.html|web.index.disposeLive",
+        "web/index.html|web.index.syncLiveUi",
+        "web/index.html|web.index.setupLivePreview",
+        "web/index.html|web.index.wrapYaw",
+        "web/index.html|web.index.cameraAt",
+        "web/index.html|web.index.sliceCamera",
+        "web/index.html|web.index.sceneryHere",
+        "web/index.html|web.index.changePanoMode",
+        "web/index.html|web.index.refreshPanorama",
+        "web/index.html|web.index.panoClick",
+        "web/index.html|web.index.addKey",
+        "web/index.html|web.index.runTrack"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "web/responsive_ui.js": {
+      "method_keys": [
+        "web/responsive_ui.js|web.responsive_ui.closeLibrary",
+        "web/responsive_ui.js|web.responsive_ui.init",
+        "web/responsive_ui.js|web.responsive_ui.switchTab",
+        "web/responsive_ui.js|web.responsive_ui.mount",
+        "web/responsive_ui.js|web.responsive_ui.changeZoom",
+        "web/responsive_ui.js|web.responsive_ui.updatePlayhead",
+        "web/responsive_ui.js|web.responsive_ui.decorate"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "web/live_preview.js": {
+      "method_keys": [
+        "web/live_preview.js|web.live_preview.shader",
+        "web/live_preview.js|web.live_preview.LivePanoramaPreview"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "web/benchmark.html": {
+      "method_keys": [
+        "web/benchmark.html|web.benchmark.api",
+        "web/benchmark.html|web.benchmark.announce",
+        "web/benchmark.html|web.benchmark.reload",
+        "web/benchmark.html|web.benchmark.display",
+        "web/benchmark.html|web.benchmark.run"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/__main__.py": {
+      "method_keys": [
+        "movie_modify/__main__.py|movie_modify.__main__.main"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/server.py": {
+      "method_keys": [
+        "movie_modify/server.py|movie_modify.server.EditPayload",
+        "movie_modify/server.py|movie_modify.server.RestoreRevisionPayload",
+        "movie_modify/server.py|movie_modify.server.AnalyzePayload",
+        "movie_modify/server.py|movie_modify.server.ApplyPayload",
+        "movie_modify/server.py|movie_modify.server.RenderPayload",
+        "movie_modify/server.py|movie_modify.server.TrackPayload",
+        "movie_modify/server.py|movie_modify.server.BenchmarkPayload",
+        "movie_modify/server.py|movie_modify.server.UploadStartPayload",
+        "movie_modify/server.py|movie_modify.server.LoginPayload",
+        "movie_modify/server.py|movie_modify.server.restrict_api",
+        "movie_modify/server.py|movie_modify.server.benchmark_dashboard",
+        "movie_modify/server.py|movie_modify.server.homepage",
+        "movie_modify/server.py|movie_modify.server.studio_redirect",
+        "movie_modify/server.py|movie_modify.server.studio_home",
+        "movie_modify/server.py|movie_modify.server.studio_script",
+        "movie_modify/server.py|movie_modify.server.studio_styles",
+        "movie_modify/server.py|movie_modify.server.studio_webgl",
+        "movie_modify/server.py|movie_modify.server.studio_edit_history",
+        "movie_modify/server.py|movie_modify.server.studio_bridge",
+        "movie_modify/server.py|movie_modify.server.adaptive_editor_css",
+        "movie_modify/server.py|movie_modify.server.adaptive_editor_js",
+        "movie_modify/server.py|movie_modify.server.advanced_edit_history",
+        "movie_modify/server.py|movie_modify.server.panorama_viewer_script",
+        "movie_modify/server.py|movie_modify.server.login",
+        "movie_modify/server.py|movie_modify.server.health",
+        "movie_modify/server.py|movie_modify.server._directory",
+        "movie_modify/server.py|movie_modify.server._project",
+        "movie_modify/server.py|movie_modify.server._save",
+        "movie_modify/server.py|movie_modify.server._require_revision",
+        "movie_modify/server.py|movie_modify.server._revision_folder",
+        "movie_modify/server.py|movie_modify.server._archive_edits",
+        "movie_modify/server.py|movie_modify.server._commit_edits",
+        "movie_modify/server.py|movie_modify.server._job",
+        "movie_modify/server.py|movie_modify.server.update",
+        "movie_modify/server.py|movie_modify.server.runner",
+        "movie_modify/server.py|movie_modify.server.job_detail",
+        "movie_modify/server.py|movie_modify.server.benchmark_start",
+        "movie_modify/server.py|movie_modify.server.benchmark_list",
+        "movie_modify/server.py|movie_modify.server.benchmark_report",
+        "movie_modify/server.py|movie_modify.server.projects",
+        "movie_modify/server.py|movie_modify.server.upload_issue_handler",
+        "movie_modify/server.py|movie_modify.server.create_resumable_upload",
+        "movie_modify/server.py|movie_modify.server.get_resumable_upload",
+        "movie_modify/server.py|movie_modify.server.receive_video_chunk",
+        "movie_modify/server.py|movie_modify.server.cancel_resumable_upload",
+        "movie_modify/server.py|movie_modify.server.complete_resumable_upload",
+        "movie_modify/server.py|movie_modify.server.import_video",
+        "movie_modify/server.py|movie_modify.server.make_proxy",
+        "movie_modify/server.py|movie_modify.server.project_detail",
+        "movie_modify/server.py|movie_modify.server.preview",
+        "movie_modify/server.py|movie_modify.server.prepare_preview360",
+        "movie_modify/server.py|movie_modify.server.transcode",
+        "movie_modify/server.py|movie_modify.server.preview360",
+        "movie_modify/server.py|movie_modify.server.frame",
+        "movie_modify/server.py|movie_modify.server.panorama",
+        "movie_modify/server.py|movie_modify.server.track",
+        "movie_modify/server.py|movie_modify.server.work",
+        "movie_modify/server.py|movie_modify.server.save_edits",
+        "movie_modify/server.py|movie_modify.server.edit_history",
+        "movie_modify/server.py|movie_modify.server.restore_edit_revision",
+        "movie_modify/server.py|movie_modify.server.analyze",
+        "movie_modify/server.py|movie_modify.server.apply",
+        "movie_modify/server.py|movie_modify.server.render_project",
+        "movie_modify/server.py|movie_modify.server.export"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/core.py": {
+      "method_keys": [
+        "movie_modify/core.py|movie_modify.core.clamp",
+        "movie_modify/core.py|movie_modify.core.fresh_segment",
+        "movie_modify/core.py|movie_modify.core.normalize_segments",
+        "movie_modify/core.py|movie_modify.core.wrap_yaw",
+        "movie_modify/core.py|movie_modify.core.camera_at",
+        "movie_modify/core.py|movie_modify.core.slice_segment",
+        "movie_modify/core.py|movie_modify.core.merge_intervals",
+        "movie_modify/core.py|movie_modify.core.apply_suggestions",
+        "movie_modify/core.py|movie_modify.core.parse_auto_editor_v1"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/media.py": {
+      "method_keys": [
+        "movie_modify/media.py|movie_modify.media.run",
+        "movie_modify/media.py|movie_modify.media.available",
+        "movie_modify/media.py|movie_modify.media.inspect_video",
+        "movie_modify/media.py|movie_modify.media.view_filter",
+        "movie_modify/media.py|movie_modify.media.build_filters",
+        "movie_modify/media.py|movie_modify.media.create_proxy",
+        "movie_modify/media.py|movie_modify.media.preview_frame",
+        "movie_modify/media.py|movie_modify.media.panorama_frame",
+        "movie_modify/media.py|movie_modify.media.animated_filter",
+        "movie_modify/media.py|movie_modify.media.silence_suggestions",
+        "movie_modify/media.py|movie_modify.media.auto_editor_suggestions",
+        "movie_modify/media.py|movie_modify.media.render",
+        "movie_modify/media.py|movie_modify.media.create_panorama_proxy"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/tracking.py": {
+      "method_keys": [
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState",
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.plausible_motion",
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.confirm_reacquisition",
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.radius",
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.accepts",
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.advance",
+        "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.warning",
+        "movie_modify/tracking.py|movie_modify.tracking._match_in_region",
+        "movie_modify/tracking.py|movie_modify.tracking._reference_score",
+        "movie_modify/tracking.py|movie_modify.tracking.track_panorama",
+        "movie_modify/tracking.py|movie_modify.tracking.make_tracker"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/uploads.py": {
+      "method_keys": [
+        "movie_modify/uploads.py|movie_modify.uploads.UploadIssue",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadIssue.__init__",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.__init__",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore._dir",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore._meta",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore._save_meta",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.cleanup",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.create",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.status",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.append",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.ready_source",
+        "movie_modify/uploads.py|movie_modify.uploads.UploadStore.mark_complete"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "movie_modify/benchmark.py": {
+      "method_keys": [
+        "movie_modify/benchmark.py|movie_modify.benchmark.wrap_angle",
+        "movie_modify/benchmark.py|movie_modify.benchmark.position",
+        "movie_modify/benchmark.py|movie_modify.benchmark.generate_case",
+        "movie_modify/benchmark.py|movie_modify.benchmark.stamp",
+        "movie_modify/benchmark.py|movie_modify.benchmark.predicted_pose",
+        "movie_modify/benchmark.py|movie_modify.benchmark.evaluate",
+        "movie_modify/benchmark.py|movie_modify.benchmark.run_suite"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "docs/bridge_client.js": {
+      "method_keys": [
+        "docs/bridge_client.js|docs.bridge_client.remembered",
+        "docs/bridge_client.js|docs.bridge_client.remember",
+        "docs/bridge_client.js|docs.bridge_client.say",
+        "docs/bridge_client.js|docs.bridge_client.setBusy",
+        "docs/bridge_client.js|docs.bridge_client.api",
+        "docs/bridge_client.js|docs.bridge_client.waitJob",
+        "docs/bridge_client.js|docs.bridge_client.transferIdentity",
+        "docs/bridge_client.js|docs.bridge_client.readSession",
+        "docs/bridge_client.js|docs.bridge_client.saveSession",
+        "docs/bridge_client.js|docs.bridge_client.forgetSession",
+        "docs/bridge_client.js|docs.bridge_client.showTransferProgress",
+        "docs/bridge_client.js|docs.bridge_client.sendChunks",
+        "docs/bridge_client.js|docs.bridge_client.confirmProject",
+        "docs/bridge_client.js|docs.bridge_client.action",
+        "docs/bridge_client.js|docs.bridge_client.nativeRender",
+        "docs/bridge_client.js|docs.bridge_client.pullFromServer",
+        "docs/bridge_client.js|docs.bridge_client.showServerHistory",
+        "docs/bridge_client.js|docs.bridge_client.targetFromInput",
+        "docs/bridge_client.js|docs.bridge_client.init"
+      ],
+      "content_hash": "",
+      "module_hash": ""
+    },
+    "index.html": {
+      "method_keys": [],
+      "content_hash": "",
+      "module_hash": ""
+    }
+  },
+  "methods_index": {
+    "docs/pages.js|docs.pages.notify": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.notify",
+      "start_line": 27,
+      "end_line": 33,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.downloadBlob": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.downloadBlob",
+      "start_line": 34,
+      "end_line": 41,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.validateSegment": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.validateSegment",
+      "start_line": 42,
+      "end_line": 75,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.editorSnapshot": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.editorSnapshot",
+      "start_line": 76,
+      "end_line": 79,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.validateSnapshot": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.validateSnapshot",
+      "start_line": 80,
+      "end_line": 89,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.setHistoryStatus": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.setHistoryStatus",
+      "start_line": 90,
+      "end_line": 100,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.drawEditHistory": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.drawEditHistory",
+      "start_line": 101,
+      "end_line": 121,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.checkpoint": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.checkpoint",
+      "start_line": 122,
+      "end_line": 126,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.applySnapshot": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.applySnapshot",
+      "start_line": 127,
+      "end_line": 132,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.undoEdit": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.undoEdit",
+      "start_line": 133,
+      "end_line": 137,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.redoEdit": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.redoEdit",
+      "start_line": 138,
+      "end_line": 142,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.initializeHistory": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.initializeHistory",
+      "start_line": 143,
+      "end_line": 166,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.cameraAt": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.cameraAt",
+      "start_line": 167,
+      "end_line": 181,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.findIndex": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.findIndex",
+      "start_line": 182,
+      "end_line": 184,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.selectedAt": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.selectedAt",
+      "start_line": 185,
+      "end_line": 187,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.viewerPose": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.viewerPose",
+      "start_line": 188,
+      "end_line": 192,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.teardown": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.teardown",
+      "start_line": 193,
+      "end_line": 200,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.openVideo": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.openVideo",
+      "start_line": 201,
+      "end_line": 214,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.onVideoReady": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.onVideoReady",
+      "start_line": 215,
+      "end_line": 249,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.syncControls": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.syncControls",
+      "start_line": 250,
+      "end_line": 258,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.recordSupport": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.recordSupport",
+      "start_line": 259,
+      "end_line": 264,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.showSegment": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.showSegment",
+      "start_line": 265,
+      "end_line": 278,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.timelineBars": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.timelineBars",
+      "start_line": 279,
+      "end_line": 302,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.renderTimeline": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.renderTimeline",
+      "start_line": 303,
+      "end_line": 314,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.updatePlayhead": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.updatePlayhead",
+      "start_line": 315,
+      "end_line": 319,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.updatePlayback": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.updatePlayback",
+      "start_line": 320,
+      "end_line": 335,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.resizeZoom": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.resizeZoom",
+      "start_line": 336,
+      "end_line": 343,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.sliceSegment": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.sliceSegment",
+      "start_line": 344,
+      "end_line": 353,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.splitAt": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.splitAt",
+      "start_line": 354,
+      "end_line": 360,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.toggleCut": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.toggleCut",
+      "start_line": 361,
+      "end_line": 365,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.selectScenery": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.selectScenery",
+      "start_line": 366,
+      "end_line": 376,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.updateDraft": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.updateDraft",
+      "start_line": 377,
+      "end_line": 383,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.addKey": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.addKey",
+      "start_line": 384,
+      "end_line": 395,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.resetAngle": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.resetAngle",
+      "start_line": 396,
+      "end_line": 400,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.projectJson": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.projectJson",
+      "start_line": 401,
+      "end_line": 405,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.saveJson": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.saveJson",
+      "start_line": 406,
+      "end_line": 410,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.applyProject": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.applyProject",
+      "start_line": 411,
+      "end_line": 434,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.selectMime": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.selectMime",
+      "start_line": 435,
+      "end_line": 444,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.cleanup": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.cleanup",
+      "start_line": 445,
+      "end_line": 445,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.fail": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.fail",
+      "start_line": 446,
+      "end_line": 449,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.exportRecording": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.exportRecording",
+      "start_line": 450,
+      "end_line": 548,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.switchTab": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.switchTab",
+      "start_line": 549,
+      "end_line": 552,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/pages.js|docs.pages.bind": {
+      "file_path": "docs/pages.js",
+      "qualified_name": "docs.pages.bind",
+      "start_line": 553,
+      "end_line": 582,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/live_preview.js|docs.live_preview.compile": {
+      "file_path": "docs/live_preview.js",
+      "qualified_name": "docs.live_preview.compile",
+      "start_line": 6,
+      "end_line": 10,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/live_preview.js|docs.live_preview.LivePanoramaPreview": {
+      "file_path": "docs/live_preview.js",
+      "qualified_name": "docs.live_preview.LivePanoramaPreview",
+      "start_line": 11,
+      "end_line": 40,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "docs/edit_history.js|docs.edit_history.clone": {
+      "file_path": "docs/edit_history.js",
+      "qualified_name": "docs.edit_history.clone",
+      "start_line": 9,
+      "end_line": 9,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/edit_history.js|docs.edit_history.equal": {
+      "file_path": "docs/edit_history.js",
+      "qualified_name": "docs.edit_history.equal",
+      "start_line": 10,
+      "end_line": 10,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/edit_history.js|docs.edit_history.hash": {
+      "file_path": "docs/edit_history.js",
+      "qualified_name": "docs.edit_history.hash",
+      "start_line": 11,
+      "end_line": 20,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/edit_history.js|docs.edit_history.EditHistory": {
+      "file_path": "docs/edit_history.js",
+      "qualified_name": "docs.edit_history.EditHistory",
+      "start_line": 21,
+      "end_line": 50,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.alertMsg": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.alertMsg",
+      "start_line": 45,
+      "end_line": 45,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.api": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.api",
+      "start_line": 46,
+      "end_line": 47,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.start": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.start",
+      "start_line": 48,
+      "end_line": 50,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.loadProjects": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.loadProjects",
+      "start_line": 51,
+      "end_line": 57,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.openProject": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.openProject",
+      "start_line": 58,
+      "end_line": 58,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.drawEditor": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.drawEditor",
+      "start_line": 59,
+      "end_line": 94,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.historySnapshot": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.historySnapshot",
+      "start_line": 95,
+      "end_line": 98,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.validateHistorySnapshot": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.validateHistorySnapshot",
+      "start_line": 99,
+      "end_line": 128,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.historyControls": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.historyControls",
+      "start_line": 129,
+      "end_line": 138,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.drawHistorySteps": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.drawHistorySteps",
+      "start_line": 139,
+      "end_line": 152,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.historyCheckpoint": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.historyCheckpoint",
+      "start_line": 153,
+      "end_line": 156,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.historyApply": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.historyApply",
+      "start_line": 157,
+      "end_line": 163,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.historyUndo": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.historyUndo",
+      "start_line": 164,
+      "end_line": 166,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.historyRedo": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.historyRedo",
+      "start_line": 167,
+      "end_line": 169,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.exportConflictedDraft": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.exportConflictedDraft",
+      "start_line": 170,
+      "end_line": 184,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.initializeEditHistory": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.initializeEditHistory",
+      "start_line": 185,
+      "end_line": 227,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.loadServerEditHistory": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.loadServerEditHistory",
+      "start_line": 228,
+      "end_line": 261,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.loadBenchmarkReports": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.loadBenchmarkReports",
+      "start_line": 262,
+      "end_line": 283,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.showBenchmarkReport": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.showBenchmarkReport",
+      "start_line": 284,
+      "end_line": 320,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.downloadBenchmarkReport": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.downloadBenchmarkReport",
+      "start_line": 321,
+      "end_line": 327,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.startSyntheticBenchmark": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.startSyntheticBenchmark",
+      "start_line": 328,
+      "end_line": 353,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.drawSuggestions": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.drawSuggestions",
+      "start_line": 354,
+      "end_line": 355,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.navigateTrackingGap": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.navigateTrackingGap",
+      "start_line": 356,
+      "end_line": 374,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.nextTrackingGap": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.nextTrackingGap",
+      "start_line": 375,
+      "end_line": 385,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.drawSegments": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.drawSegments",
+      "start_line": 386,
+      "end_line": 420,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.splitHere": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.splitHere",
+      "start_line": 421,
+      "end_line": 421,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.toggleSelected": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.toggleSelected",
+      "start_line": 422,
+      "end_line": 422,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.saveSegments": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.saveSegments",
+      "start_line": 423,
+      "end_line": 423,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.updateFrame": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.updateFrame",
+      "start_line": 424,
+      "end_line": 424,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.analyzeVideo": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.analyzeVideo",
+      "start_line": 425,
+      "end_line": 425,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.applySelected": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.applySelected",
+      "start_line": 426,
+      "end_line": 426,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.renderVideo": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.renderVideo",
+      "start_line": 427,
+      "end_line": 427,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.watchJob": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.watchJob",
+      "start_line": 428,
+      "end_line": 430,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.disposeLive": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.disposeLive",
+      "start_line": 431,
+      "end_line": 434,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.syncLiveUi": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.syncLiveUi",
+      "start_line": 435,
+      "end_line": 457,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.setupLivePreview": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.setupLivePreview",
+      "start_line": 458,
+      "end_line": 503,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.wrapYaw": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.wrapYaw",
+      "start_line": 504,
+      "end_line": 504,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.cameraAt": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.cameraAt",
+      "start_line": 505,
+      "end_line": 510,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.sliceCamera": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.sliceCamera",
+      "start_line": 511,
+      "end_line": 514,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.sceneryHere": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.sceneryHere",
+      "start_line": 515,
+      "end_line": 519,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.changePanoMode": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.changePanoMode",
+      "start_line": 520,
+      "end_line": 520,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.refreshPanorama": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.refreshPanorama",
+      "start_line": 521,
+      "end_line": 526,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.panoClick": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.panoClick",
+      "start_line": 527,
+      "end_line": 532,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.addKey": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.addKey",
+      "start_line": 533,
+      "end_line": 539,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/index.html|web.index.runTrack": {
+      "file_path": "web/index.html",
+      "qualified_name": "web.index.runTrack",
+      "start_line": 540,
+      "end_line": 563,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.closeLibrary": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.closeLibrary",
+      "start_line": 11,
+      "end_line": 15,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.init": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.init",
+      "start_line": 16,
+      "end_line": 72,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.switchTab": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.switchTab",
+      "start_line": 73,
+      "end_line": 85,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.mount": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.mount",
+      "start_line": 86,
+      "end_line": 213,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.changeZoom": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.changeZoom",
+      "start_line": 214,
+      "end_line": 225,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.updatePlayhead": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.updatePlayhead",
+      "start_line": 226,
+      "end_line": 238,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/responsive_ui.js|web.responsive_ui.decorate": {
+      "file_path": "web/responsive_ui.js",
+      "qualified_name": "web.responsive_ui.decorate",
+      "start_line": 239,
+      "end_line": 268,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/live_preview.js|web.live_preview.shader": {
+      "file_path": "web/live_preview.js",
+      "qualified_name": "web.live_preview.shader",
+      "start_line": 31,
+      "end_line": 39,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/live_preview.js|web.live_preview.LivePanoramaPreview": {
+      "file_path": "web/live_preview.js",
+      "qualified_name": "web.live_preview.LivePanoramaPreview",
+      "start_line": 40,
+      "end_line": 69,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "web/benchmark.html|web.benchmark.api": {
+      "file_path": "web/benchmark.html",
+      "qualified_name": "web.benchmark.api",
+      "start_line": 76,
+      "end_line": 82,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/benchmark.html|web.benchmark.announce": {
+      "file_path": "web/benchmark.html",
+      "qualified_name": "web.benchmark.announce",
+      "start_line": 83,
+      "end_line": 83,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/benchmark.html|web.benchmark.reload": {
+      "file_path": "web/benchmark.html",
+      "qualified_name": "web.benchmark.reload",
+      "start_line": 84,
+      "end_line": 100,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/benchmark.html|web.benchmark.display": {
+      "file_path": "web/benchmark.html",
+      "qualified_name": "web.benchmark.display",
+      "start_line": 101,
+      "end_line": 127,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "web/benchmark.html|web.benchmark.run": {
+      "file_path": "web/benchmark.html",
+      "qualified_name": "web.benchmark.run",
+      "start_line": 128,
+      "end_line": 157,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/__main__.py|movie_modify.__main__.main": {
+      "file_path": "movie_modify/__main__.py",
+      "qualified_name": "movie_modify.__main__.main",
+      "start_line": 15,
+      "end_line": 62,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.EditPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.EditPayload",
+      "start_line": 48,
+      "end_line": 52,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.RestoreRevisionPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.RestoreRevisionPayload",
+      "start_line": 53,
+      "end_line": 57,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.AnalyzePayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.AnalyzePayload",
+      "start_line": 58,
+      "end_line": 63,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.ApplyPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.ApplyPayload",
+      "start_line": 64,
+      "end_line": 68,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.RenderPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.RenderPayload",
+      "start_line": 69,
+      "end_line": 72,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.TrackPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.TrackPayload",
+      "start_line": 73,
+      "end_line": 81,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.BenchmarkPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.BenchmarkPayload",
+      "start_line": 82,
+      "end_line": 88,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.UploadStartPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.UploadStartPayload",
+      "start_line": 89,
+      "end_line": 95,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.LoginPayload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.LoginPayload",
+      "start_line": 96,
+      "end_line": 100,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.restrict_api": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.restrict_api",
+      "start_line": 101,
+      "end_line": 110,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.benchmark_dashboard": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.benchmark_dashboard",
+      "start_line": 111,
+      "end_line": 115,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.homepage": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.homepage",
+      "start_line": 116,
+      "end_line": 123,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_redirect": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_redirect",
+      "start_line": 124,
+      "end_line": 128,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_home": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_home",
+      "start_line": 129,
+      "end_line": 133,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_script": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_script",
+      "start_line": 134,
+      "end_line": 138,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_styles": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_styles",
+      "start_line": 139,
+      "end_line": 143,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_webgl": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_webgl",
+      "start_line": 144,
+      "end_line": 148,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_edit_history": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_edit_history",
+      "start_line": 149,
+      "end_line": 153,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.studio_bridge": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.studio_bridge",
+      "start_line": 154,
+      "end_line": 158,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.adaptive_editor_css": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.adaptive_editor_css",
+      "start_line": 159,
+      "end_line": 163,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.adaptive_editor_js": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.adaptive_editor_js",
+      "start_line": 164,
+      "end_line": 168,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.advanced_edit_history": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.advanced_edit_history",
+      "start_line": 169,
+      "end_line": 173,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.panorama_viewer_script": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.panorama_viewer_script",
+      "start_line": 174,
+      "end_line": 179,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.login": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.login",
+      "start_line": 180,
+      "end_line": 187,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.health": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.health",
+      "start_line": 188,
+      "end_line": 194,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._directory": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._directory",
+      "start_line": 195,
+      "end_line": 203,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._project": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._project",
+      "start_line": 204,
+      "end_line": 211,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._save": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._save",
+      "start_line": 212,
+      "end_line": 223,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._require_revision": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._require_revision",
+      "start_line": 224,
+      "end_line": 232,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._revision_folder": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._revision_folder",
+      "start_line": 233,
+      "end_line": 238,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._archive_edits": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._archive_edits",
+      "start_line": 239,
+      "end_line": 260,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._commit_edits": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._commit_edits",
+      "start_line": 261,
+      "end_line": 269,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server._job": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server._job",
+      "start_line": 270,
+      "end_line": 297,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.update": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.update",
+      "start_line": 275,
+      "end_line": 278,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.runner": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.runner",
+      "start_line": 279,
+      "end_line": 292,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.job_detail": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.job_detail",
+      "start_line": 298,
+      "end_line": 305,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.benchmark_start": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.benchmark_start",
+      "start_line": 310,
+      "end_line": 326,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.benchmark_list": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.benchmark_list",
+      "start_line": 327,
+      "end_line": 343,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.benchmark_report": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.benchmark_report",
+      "start_line": 344,
+      "end_line": 356,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.projects": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.projects",
+      "start_line": 357,
+      "end_line": 368,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.upload_issue_handler": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.upload_issue_handler",
+      "start_line": 369,
+      "end_line": 375,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.create_resumable_upload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.create_resumable_upload",
+      "start_line": 376,
+      "end_line": 383,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.get_resumable_upload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.get_resumable_upload",
+      "start_line": 384,
+      "end_line": 388,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.receive_video_chunk": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.receive_video_chunk",
+      "start_line": 389,
+      "end_line": 398,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.cancel_resumable_upload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.cancel_resumable_upload",
+      "start_line": 399,
+      "end_line": 409,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.complete_resumable_upload": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.complete_resumable_upload",
+      "start_line": 410,
+      "end_line": 458,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.import_video": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.import_video",
+      "start_line": 459,
+      "end_line": 511,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.make_proxy": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.make_proxy",
+      "start_line": 492,
+      "end_line": 502,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.project_detail": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.project_detail",
+      "start_line": 512,
+      "end_line": 516,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.preview": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.preview",
+      "start_line": 517,
+      "end_line": 527,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.prepare_preview360": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.prepare_preview360",
+      "start_line": 528,
+      "end_line": 557,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.transcode": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.transcode",
+      "start_line": 542,
+      "end_line": 550,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.preview360": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.preview360",
+      "start_line": 558,
+      "end_line": 569,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.frame": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.frame",
+      "start_line": 570,
+      "end_line": 583,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.panorama": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.panorama",
+      "start_line": 584,
+      "end_line": 597,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.track": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.track",
+      "start_line": 598,
+      "end_line": 668,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.work": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.work",
+      "start_line": 626,
+      "end_line": 664,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.save_edits": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.save_edits",
+      "start_line": 669,
+      "end_line": 680,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.edit_history": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.edit_history",
+      "start_line": 681,
+      "end_line": 699,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.restore_edit_revision": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.restore_edit_revision",
+      "start_line": 700,
+      "end_line": 721,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.analyze": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.analyze",
+      "start_line": 722,
+      "end_line": 742,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.apply": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.apply",
+      "start_line": 743,
+      "end_line": 756,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.render_project": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.render_project",
+      "start_line": 757,
+      "end_line": 772,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/server.py|movie_modify.server.export": {
+      "file_path": "movie_modify/server.py",
+      "qualified_name": "movie_modify.server.export",
+      "start_line": 773,
+      "end_line": 779,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.clamp": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.clamp",
+      "start_line": 11,
+      "end_line": 14,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.fresh_segment": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.fresh_segment",
+      "start_line": 15,
+      "end_line": 20,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.normalize_segments": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.normalize_segments",
+      "start_line": 21,
+      "end_line": 95,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.wrap_yaw": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.wrap_yaw",
+      "start_line": 96,
+      "end_line": 99,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.camera_at": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.camera_at",
+      "start_line": 100,
+      "end_line": 118,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.slice_segment": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.slice_segment",
+      "start_line": 119,
+      "end_line": 134,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.merge_intervals": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.merge_intervals",
+      "start_line": 135,
+      "end_line": 148,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.apply_suggestions": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.apply_suggestions",
+      "start_line": 149,
+      "end_line": 164,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/core.py|movie_modify.core.parse_auto_editor_v1": {
+      "file_path": "movie_modify/core.py",
+      "qualified_name": "movie_modify.core.parse_auto_editor_v1",
+      "start_line": 165,
+      "end_line": 178,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.run": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.run",
+      "start_line": 19,
+      "end_line": 27,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.available": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.available",
+      "start_line": 28,
+      "end_line": 31,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.inspect_video": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.inspect_video",
+      "start_line": 32,
+      "end_line": 46,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.view_filter": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.view_filter",
+      "start_line": 47,
+      "end_line": 50,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.build_filters": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.build_filters",
+      "start_line": 51,
+      "end_line": 59,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.create_proxy": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.create_proxy",
+      "start_line": 60,
+      "end_line": 66,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.preview_frame": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.preview_frame",
+      "start_line": 67,
+      "end_line": 77,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.panorama_frame": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.panorama_frame",
+      "start_line": 78,
+      "end_line": 88,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.animated_filter": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.animated_filter",
+      "start_line": 89,
+      "end_line": 109,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.silence_suggestions": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.silence_suggestions",
+      "start_line": 110,
+      "end_line": 130,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.auto_editor_suggestions": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.auto_editor_suggestions",
+      "start_line": 131,
+      "end_line": 138,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.render": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.render",
+      "start_line": 139,
+      "end_line": 187,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/media.py|movie_modify.media.create_panorama_proxy": {
+      "file_path": "movie_modify/media.py",
+      "qualified_name": "movie_modify.media.create_panorama_proxy",
+      "start_line": 188,
+      "end_line": 202,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState",
+      "start_line": 17,
+      "end_line": 128,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.plausible_motion": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState.plausible_motion",
+      "start_line": 29,
+      "end_line": 47,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.confirm_reacquisition": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState.confirm_reacquisition",
+      "start_line": 48,
+      "end_line": 77,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.radius": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState.radius",
+      "start_line": 78,
+      "end_line": 82,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.accepts": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState.accepts",
+      "start_line": 83,
+      "end_line": 99,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.advance": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState.advance",
+      "start_line": 100,
+      "end_line": 113,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.RecoveryState.warning": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.RecoveryState.warning",
+      "start_line": 114,
+      "end_line": 128,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking._match_in_region": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking._match_in_region",
+      "start_line": 129,
+      "end_line": 159,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking._reference_score": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking._reference_score",
+      "start_line": 160,
+      "end_line": 173,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.track_panorama": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.track_panorama",
+      "start_line": 174,
+      "end_line": 331,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/tracking.py|movie_modify.tracking.make_tracker": {
+      "file_path": "movie_modify/tracking.py",
+      "qualified_name": "movie_modify.tracking.make_tracker",
+      "start_line": 207,
+      "end_line": 219,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadIssue": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadIssue",
+      "start_line": 23,
+      "end_line": 28,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadIssue.__init__": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadIssue.__init__",
+      "start_line": 24,
+      "end_line": 28,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore",
+      "start_line": 29,
+      "end_line": 143,
+      "type": "CLASS",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.__init__": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.__init__",
+      "start_line": 30,
+      "end_line": 34,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore._dir": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore._dir",
+      "start_line": 35,
+      "end_line": 42,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore._meta": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore._meta",
+      "start_line": 43,
+      "end_line": 49,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore._save_meta": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore._save_meta",
+      "start_line": 50,
+      "end_line": 55,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.cleanup": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.cleanup",
+      "start_line": 56,
+      "end_line": 62,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.create": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.create",
+      "start_line": 63,
+      "end_line": 87,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.status": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.status",
+      "start_line": 88,
+      "end_line": 94,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.append": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.append",
+      "start_line": 95,
+      "end_line": 123,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.ready_source": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.ready_source",
+      "start_line": 124,
+      "end_line": 134,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/uploads.py|movie_modify.uploads.UploadStore.mark_complete": {
+      "file_path": "movie_modify/uploads.py",
+      "qualified_name": "movie_modify.uploads.UploadStore.mark_complete",
+      "start_line": 135,
+      "end_line": 143,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.wrap_angle": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.wrap_angle",
+      "start_line": 27,
+      "end_line": 30,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.position": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.position",
+      "start_line": 31,
+      "end_line": 44,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.generate_case": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.generate_case",
+      "start_line": 45,
+      "end_line": 106,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.stamp": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.stamp",
+      "start_line": 61,
+      "end_line": 69,
+      "type": "METHOD",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.predicted_pose": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.predicted_pose",
+      "start_line": 107,
+      "end_line": 122,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.evaluate": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.evaluate",
+      "start_line": 123,
+      "end_line": 189,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "movie_modify/benchmark.py|movie_modify.benchmark.run_suite": {
+      "file_path": "movie_modify/benchmark.py",
+      "qualified_name": "movie_modify.benchmark.run_suite",
+      "start_line": 190,
+      "end_line": 240,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.remembered": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.remembered",
+      "start_line": 18,
+      "end_line": 21,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.remember": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.remember",
+      "start_line": 22,
+      "end_line": 37,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.say": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.say",
+      "start_line": 38,
+      "end_line": 41,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.setBusy": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.setBusy",
+      "start_line": 42,
+      "end_line": 47,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.api": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.api",
+      "start_line": 48,
+      "end_line": 58,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.waitJob": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.waitJob",
+      "start_line": 59,
+      "end_line": 70,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.transferIdentity": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.transferIdentity",
+      "start_line": 71,
+      "end_line": 74,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.readSession": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.readSession",
+      "start_line": 75,
+      "end_line": 78,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.saveSession": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.saveSession",
+      "start_line": 79,
+      "end_line": 82,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.forgetSession": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.forgetSession",
+      "start_line": 83,
+      "end_line": 85,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.showTransferProgress": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.showTransferProgress",
+      "start_line": 86,
+      "end_line": 92,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.sendChunks": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.sendChunks",
+      "start_line": 93,
+      "end_line": 147,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.confirmProject": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.confirmProject",
+      "start_line": 148,
+      "end_line": 199,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.action": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.action",
+      "start_line": 200,
+      "end_line": 205,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.nativeRender": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.nativeRender",
+      "start_line": 206,
+      "end_line": 215,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.pullFromServer": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.pullFromServer",
+      "start_line": 216,
+      "end_line": 238,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.showServerHistory": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.showServerHistory",
+      "start_line": 239,
+      "end_line": 281,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.targetFromInput": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.targetFromInput",
+      "start_line": 282,
+      "end_line": 294,
+      "type": "FUNCTION",
+      "content_hash": ""
+    },
+    "docs/bridge_client.js|docs.bridge_client.init": {
+      "file_path": "docs/bridge_client.js",
+      "qualified_name": "docs.bridge_client.init",
+      "start_line": 295,
+      "end_line": 324,
+      "type": "FUNCTION",
+      "content_hash": ""
+    }
+  },
+  "components": [
+    {
+      "name": "Pages/Studioブラウザ編集",
+      "description": "GitHub PagesとPCが配信する共通ブラウザ編集画面。素材の選択、タイムライン、画角キーフレーム、WebGL再生および端末内の編集下書きを担う。",
+      "key_entities": [
+        {
+          "qualified_name": "docs.edit_history.EditHistory",
+          "reference_file": "docs/edit_history.js",
+          "reference_start_line": 21,
+          "reference_end_line": 50
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "docs/index.html",
+          "methods": []
+        },
+        {
+          "file_path": "docs/pages.js",
+          "methods": [
+            "docs.pages.notify",
+            "docs.pages.downloadBlob",
+            "docs.pages.validateSegment",
+            "docs.pages.editorSnapshot",
+            "docs.pages.validateSnapshot",
+            "docs.pages.setHistoryStatus",
+            "docs.pages.drawEditHistory",
+            "docs.pages.checkpoint",
+            "docs.pages.applySnapshot",
+            "docs.pages.undoEdit",
+            "docs.pages.redoEdit",
+            "docs.pages.initializeHistory",
+            "docs.pages.cameraAt",
+            "docs.pages.findIndex",
+            "docs.pages.selectedAt",
+            "docs.pages.viewerPose",
+            "docs.pages.teardown",
+            "docs.pages.openVideo",
+            "docs.pages.onVideoReady",
+            "docs.pages.syncControls",
+            "docs.pages.recordSupport",
+            "docs.pages.showSegment",
+            "docs.pages.timelineBars",
+            "docs.pages.renderTimeline",
+            "docs.pages.updatePlayhead",
+            "docs.pages.updatePlayback",
+            "docs.pages.resizeZoom",
+            "docs.pages.sliceSegment",
+            "docs.pages.splitAt",
+            "docs.pages.toggleCut",
+            "docs.pages.selectScenery",
+            "docs.pages.updateDraft",
+            "docs.pages.addKey",
+            "docs.pages.resetAngle",
+            "docs.pages.projectJson",
+            "docs.pages.saveJson",
+            "docs.pages.applyProject",
+            "docs.pages.selectMime",
+            "docs.pages.cleanup",
+            "docs.pages.fail",
+            "docs.pages.exportRecording",
+            "docs.pages.switchTab",
+            "docs.pages.bind"
+          ]
+        },
+        {
+          "file_path": "index.html",
+          "methods": []
+        },
+        {
+          "file_path": "docs/live_preview.js",
+          "methods": [
+            "docs.live_preview.compile",
+            "docs.live_preview.LivePanoramaPreview"
+          ]
+        },
+        {
+          "file_path": "docs/edit_history.js",
+          "methods": [
+            "docs.edit_history.clone",
+            "docs.edit_history.equal",
+            "docs.edit_history.hash",
+            "docs.edit_history.EditHistory"
+          ]
+        }
+      ],
+      "component_id": "1",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "タイムライン・編集UI",
+          "description": "Pages版の動画選択、タイムラインの分割、保持・除外、JSONエクスポートと読み込み。",
+          "key_entities": [
+            {
+              "qualified_name": "docs.pages.bind",
+              "reference_file": "docs/pages.js",
+              "reference_start_line": 553,
+              "reference_end_line": 582
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "docs/index.html",
+              "methods": []
+            },
+            {
+              "file_path": "docs/pages.js",
+              "methods": [
+                "docs.pages.openVideo",
+                "docs.pages.onVideoReady",
+                "docs.pages.renderTimeline",
+                "docs.pages.splitAt",
+                "docs.pages.toggleCut",
+                "docs.pages.selectScenery",
+                "docs.pages.addKey",
+                "docs.pages.projectJson",
+                "docs.pages.applyProject",
+                "docs.pages.bind"
+              ]
+            },
+            {
+              "file_path": "index.html",
+              "methods": []
+            }
+          ],
+          "component_id": "1.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "360度WebGLプレビュー",
+          "description": "equirectangularのパノラマ画像から16:9視野を描画し、連続再生する。",
+          "key_entities": [
+            {
+              "qualified_name": "docs.live_preview.compile",
+              "reference_file": "docs/live_preview.js",
+              "reference_start_line": 6,
+              "reference_end_line": 10
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "docs/live_preview.js",
+              "methods": [
+                "docs.live_preview.compile",
+                "docs.live_preview.LivePanoramaPreview"
+              ]
+            }
+          ],
+          "component_id": "1.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "Undo・下書き自動保存",
+          "description": "編集履歴とlocalStorageへの下書き保存、同一素材の安全な復元。",
+          "key_entities": [
+            {
+              "qualified_name": "docs.pages.checkpoint",
+              "reference_file": "docs/pages.js",
+              "reference_start_line": 122,
+              "reference_end_line": 126
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "docs/edit_history.js",
+              "methods": [
+                "docs.edit_history.clone",
+                "docs.edit_history.hash",
+                "docs.edit_history.EditHistory"
+              ]
+            },
+            {
+              "file_path": "docs/pages.js",
+              "methods": [
+                "docs.pages.checkpoint",
+                "docs.pages.undoEdit",
+                "docs.pages.redoEdit",
+                "docs.pages.initializeHistory"
+              ]
+            }
+          ],
+          "component_id": "1.3",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "再生時のカメラ方向を描画",
+          "src_name": "タイムライン・編集UI",
+          "dst_name": "360度WebGLプレビュー",
+          "evidence": "docs/pages.jsがdocs/live_preview.jsのLivePanoramaPreviewを呼び出す",
+          "key_edges": [],
+          "src_id": "1.1",
+          "dst_id": "1.2",
+          "is_static": false,
+          "all_edges": []
+        },
+        {
+          "relation": "編集アクションを履歴へ記録",
+          "src_name": "タイムライン・編集UI",
+          "dst_name": "Undo・下書き自動保存",
+          "evidence": "docs/pages.jsがMovieModifyEditHistoryを利用",
+          "key_edges": [],
+          "src_id": "1.1",
+          "dst_id": "1.3",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "PC詳細エディター",
+      "description": "Windows/Linux FastAPIで配信するローカルの高度編集画面。人物追尾操作、手動補正、静音解析、出力、PC保存履歴、進捗表示。",
+      "key_entities": [
+        {
+          "qualified_name": "web.live_preview.LivePanoramaPreview",
+          "reference_file": "web/live_preview.js",
+          "reference_start_line": 40,
+          "reference_end_line": 69
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "web/index.html",
+          "methods": [
+            "web.index.alertMsg",
+            "web.index.api",
+            "web.index.start",
+            "web.index.loadProjects",
+            "web.index.openProject",
+            "web.index.drawEditor",
+            "web.index.historySnapshot",
+            "web.index.validateHistorySnapshot",
+            "web.index.historyControls",
+            "web.index.drawHistorySteps",
+            "web.index.historyCheckpoint",
+            "web.index.historyApply",
+            "web.index.historyUndo",
+            "web.index.historyRedo",
+            "web.index.exportConflictedDraft",
+            "web.index.initializeEditHistory",
+            "web.index.loadServerEditHistory",
+            "web.index.loadBenchmarkReports",
+            "web.index.showBenchmarkReport",
+            "web.index.downloadBenchmarkReport",
+            "web.index.startSyntheticBenchmark",
+            "web.index.drawSuggestions",
+            "web.index.navigateTrackingGap",
+            "web.index.nextTrackingGap",
+            "web.index.drawSegments",
+            "web.index.splitHere",
+            "web.index.toggleSelected",
+            "web.index.saveSegments",
+            "web.index.updateFrame",
+            "web.index.analyzeVideo",
+            "web.index.applySelected",
+            "web.index.renderVideo",
+            "web.index.watchJob",
+            "web.index.disposeLive",
+            "web.index.syncLiveUi",
+            "web.index.setupLivePreview",
+            "web.index.wrapYaw",
+            "web.index.cameraAt",
+            "web.index.sliceCamera",
+            "web.index.sceneryHere",
+            "web.index.changePanoMode",
+            "web.index.refreshPanorama",
+            "web.index.panoClick",
+            "web.index.addKey",
+            "web.index.runTrack"
+          ]
+        },
+        {
+          "file_path": "web/responsive_ui.js",
+          "methods": [
+            "web.responsive_ui.closeLibrary",
+            "web.responsive_ui.init",
+            "web.responsive_ui.switchTab",
+            "web.responsive_ui.mount",
+            "web.responsive_ui.changeZoom",
+            "web.responsive_ui.updatePlayhead",
+            "web.responsive_ui.decorate"
+          ]
+        },
+        {
+          "file_path": "web/live_preview.js",
+          "methods": [
+            "web.live_preview.shader",
+            "web.live_preview.LivePanoramaPreview"
+          ]
+        }
+      ],
+      "component_id": "2",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "詳細編集・追尾操作",
+          "description": "プロジェクト選択、画角キー編集、カット反映、FFmpeg書き出し指示と追尾の未検出区間の補正。",
+          "key_entities": [
+            {
+              "qualified_name": "web.index.addKey",
+              "reference_file": "web/index.html",
+              "reference_start_line": 533,
+              "reference_end_line": 539
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "web/index.html",
+              "methods": [
+                "web.index.start",
+                "web.index.openProject",
+                "web.index.drawEditor",
+                "web.index.navigateTrackingGap",
+                "web.index.drawSegments",
+                "web.index.saveSegments",
+                "web.index.renderVideo",
+                "web.index.watchJob",
+                "web.index.addKey",
+                "web.index.runTrack"
+              ]
+            }
+          ],
+          "component_id": "2.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "レスポンシブUI",
+          "description": "iPhoneのタブ・片手操作・ピンチズームとPCキーボード操作を共通の編集データへ反映。",
+          "key_entities": [
+            {
+              "qualified_name": "web.responsive_ui.changeZoom",
+              "reference_file": "web/responsive_ui.js",
+              "reference_start_line": 214,
+              "reference_end_line": 225
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "web/responsive_ui.js",
+              "methods": [
+                "web.responsive_ui.init",
+                "web.responsive_ui.switchTab",
+                "web.responsive_ui.mount",
+                "web.responsive_ui.changeZoom",
+                "web.responsive_ui.decorate"
+              ]
+            }
+          ],
+          "component_id": "2.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "ローカルの連続映像プレビュー",
+          "description": "WebGLで360度動画を投影、タイムラインと連動して画角を連続表示。",
+          "key_entities": [
+            {
+              "qualified_name": "web.index.cameraAt",
+              "reference_file": "web/index.html",
+              "reference_start_line": 505,
+              "reference_end_line": 510
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "web/live_preview.js",
+              "methods": [
+                "web.live_preview.LivePanoramaPreview"
+              ]
+            },
+            {
+              "file_path": "web/index.html",
+              "methods": [
+                "web.index.setupLivePreview",
+                "web.index.cameraAt"
+              ]
+            }
+          ],
+          "component_id": "2.3",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "画面幅に応じた配置へ変換",
+          "src_name": "詳細編集・追尾操作",
+          "dst_name": "レスポンシブUI",
+          "evidence": "web/index.htmlからMovieModifyUI.mount()を呼ぶ",
+          "key_edges": [],
+          "src_id": "2.1",
+          "dst_id": "2.2",
+          "is_static": false,
+          "all_edges": []
+        },
+        {
+          "relation": "連続映像プレビューを構成",
+          "src_name": "詳細編集・追尾操作",
+          "dst_name": "ローカルの連続映像プレビュー",
+          "evidence": "web/index.htmlでLivePanoramaPreviewを作成",
+          "key_edges": [],
+          "src_id": "2.1",
+          "dst_id": "2.3",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "FastAPI・プロジェクト管理",
+      "description": "PC上のREST APIとジョブキュー、動画プロジェクトの読込/保存、認証、衝突回避を管理。元動画はPCローカルに保存される。",
+      "key_entities": [
+        {
+          "qualified_name": "movie_modify.__main__.main",
+          "reference_file": "movie_modify/__main__.py",
+          "reference_start_line": 15,
+          "reference_end_line": 62
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "movie_modify/server.py",
+          "methods": [
+            "movie_modify.server.EditPayload",
+            "movie_modify.server.RestoreRevisionPayload",
+            "movie_modify.server.AnalyzePayload",
+            "movie_modify.server.ApplyPayload",
+            "movie_modify.server.RenderPayload",
+            "movie_modify.server.TrackPayload",
+            "movie_modify.server.BenchmarkPayload",
+            "movie_modify.server.UploadStartPayload",
+            "movie_modify.server.LoginPayload",
+            "movie_modify.server.restrict_api",
+            "movie_modify.server.benchmark_dashboard",
+            "movie_modify.server.homepage",
+            "movie_modify.server.studio_redirect",
+            "movie_modify.server.studio_home",
+            "movie_modify.server.studio_script",
+            "movie_modify.server.studio_styles",
+            "movie_modify.server.studio_webgl",
+            "movie_modify.server.studio_edit_history",
+            "movie_modify.server.studio_bridge",
+            "movie_modify.server.adaptive_editor_css",
+            "movie_modify.server.adaptive_editor_js",
+            "movie_modify.server.advanced_edit_history",
+            "movie_modify.server.panorama_viewer_script",
+            "movie_modify.server.login",
+            "movie_modify.server.health",
+            "movie_modify.server._directory",
+            "movie_modify.server._project",
+            "movie_modify.server._save",
+            "movie_modify.server._require_revision",
+            "movie_modify.server._revision_folder",
+            "movie_modify.server._archive_edits",
+            "movie_modify.server._commit_edits",
+            "movie_modify.server._job",
+            "movie_modify.server.update",
+            "movie_modify.server.runner",
+            "movie_modify.server.job_detail",
+            "movie_modify.server.benchmark_start",
+            "movie_modify.server.benchmark_list",
+            "movie_modify.server.benchmark_report",
+            "movie_modify.server.projects",
+            "movie_modify.server.upload_issue_handler",
+            "movie_modify.server.create_resumable_upload",
+            "movie_modify.server.get_resumable_upload",
+            "movie_modify.server.receive_video_chunk",
+            "movie_modify.server.cancel_resumable_upload",
+            "movie_modify.server.complete_resumable_upload",
+            "movie_modify.server.import_video",
+            "movie_modify.server.make_proxy",
+            "movie_modify.server.project_detail",
+            "movie_modify.server.preview",
+            "movie_modify.server.prepare_preview360",
+            "movie_modify.server.transcode",
+            "movie_modify.server.preview360",
+            "movie_modify.server.frame",
+            "movie_modify.server.panorama",
+            "movie_modify.server.track",
+            "movie_modify.server.work",
+            "movie_modify.server.save_edits",
+            "movie_modify.server.edit_history",
+            "movie_modify.server.restore_edit_revision",
+            "movie_modify.server.analyze",
+            "movie_modify.server.apply",
+            "movie_modify.server.render_project",
+            "movie_modify.server.export"
+          ]
+        },
+        {
+          "file_path": "movie_modify/__main__.py",
+          "methods": [
+            "movie_modify.__main__.main"
+          ]
+        }
+      ],
+      "component_id": "3",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "REST API・編集保存",
+          "description": "プロジェクトAPI、JSONへの編集指示保存、版数409競合検出、圧縮した旧世代の復元。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.server.edit_history",
+              "reference_file": "movie_modify/server.py",
+              "reference_start_line": 681,
+              "reference_end_line": 699
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/server.py",
+              "methods": [
+                "movie_modify.server._project",
+                "movie_modify.server._save",
+                "movie_modify.server._require_revision",
+                "movie_modify.server._commit_edits",
+                "movie_modify.server.project_detail",
+                "movie_modify.server.save_edits",
+                "movie_modify.server.edit_history",
+                "movie_modify.server.restore_edit_revision"
+              ]
+            }
+          ],
+          "component_id": "3.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "非同期ジョブ・認証",
+          "description": "FastAPI API認証、プレビュー/解析/書き出し処理の直列ジョブと進捗通知。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.server.track",
+              "reference_file": "movie_modify/server.py",
+              "reference_start_line": 598,
+              "reference_end_line": 668
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/server.py",
+              "methods": [
+                "movie_modify.server.restrict_api",
+                "movie_modify.server.login",
+                "movie_modify.server._job",
+                "movie_modify.server.job_detail",
+                "movie_modify.server.track",
+                "movie_modify.server.analyze",
+                "movie_modify.server.render_project"
+              ]
+            }
+          ],
+          "component_id": "3.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "Windows/Linux起動",
+          "description": "ローカルPCでの起動オプション、ポート/LANバインドとトークン要求。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.__main__.main",
+              "reference_file": "movie_modify/__main__.py",
+              "reference_start_line": 15,
+              "reference_end_line": 62
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/__main__.py",
+              "methods": [
+                "movie_modify.__main__.main"
+              ]
+            }
+          ],
+          "component_id": "3.3",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "保存時の版数確認とジョブ更新",
+          "src_name": "REST API・編集保存",
+          "dst_name": "非同期ジョブ・認証",
+          "evidence": "server.py内で共通プロジェクト管理とジョブキューを利用",
+          "key_edges": [],
+          "src_id": "3.1",
+          "dst_id": "3.2",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "編集データ（EDL）・幾何",
+      "description": "非破壊の区間構造、カット指示とカメラ方向（yaw/pitch/FOV）の補間・正規化。",
+      "key_entities": [
+        {
+          "qualified_name": "movie_modify.core.parse_auto_editor_v1",
+          "reference_file": "movie_modify/core.py",
+          "reference_start_line": 165,
+          "reference_end_line": 178
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "movie_modify/core.py",
+          "methods": [
+            "movie_modify.core.clamp",
+            "movie_modify.core.fresh_segment",
+            "movie_modify.core.normalize_segments",
+            "movie_modify.core.wrap_yaw",
+            "movie_modify.core.camera_at",
+            "movie_modify.core.slice_segment",
+            "movie_modify.core.merge_intervals",
+            "movie_modify.core.apply_suggestions",
+            "movie_modify.core.parse_auto_editor_v1"
+          ]
+        }
+      ],
+      "component_id": "4",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "区間検証・分割",
+          "description": "セグメントの正規化と部分区間抽出、提案カットの適用。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.core.apply_suggestions",
+              "reference_file": "movie_modify/core.py",
+              "reference_start_line": 149,
+              "reference_end_line": 164
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/core.py",
+              "methods": [
+                "movie_modify.core.fresh_segment",
+                "movie_modify.core.normalize_segments",
+                "movie_modify.core.slice_segment",
+                "movie_modify.core.apply_suggestions"
+              ]
+            }
+          ],
+          "component_id": "4.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "視点・候補の計算",
+          "description": "カメラ方向の時刻補間と360度の角度正規化、削除候補の解析。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.core.parse_auto_editor_v1",
+              "reference_file": "movie_modify/core.py",
+              "reference_start_line": 165,
+              "reference_end_line": 178
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/core.py",
+              "methods": [
+                "movie_modify.core.wrap_yaw",
+                "movie_modify.core.camera_at",
+                "movie_modify.core.merge_intervals",
+                "movie_modify.core.parse_auto_editor_v1"
+              ]
+            }
+          ],
+          "component_id": "4.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "区間内カメラ姿勢を補間",
+          "src_name": "区間検証・分割",
+          "dst_name": "視点・候補の計算",
+          "evidence": "core.py内で時間・yawの変換を共有",
+          "key_edges": [],
+          "src_id": "4.1",
+          "dst_id": "4.2",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "FFmpeg/FFprobe メディア処理",
+      "description": "入力動画の形式解析、プロキシ生成、360度の静止画と音声解析、非破壊編集指示に基づいたMP4再エンコード。",
+      "key_entities": [
+        {
+          "qualified_name": "movie_modify.media.create_panorama_proxy",
+          "reference_file": "movie_modify/media.py",
+          "reference_start_line": 188,
+          "reference_end_line": 202
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "movie_modify/media.py",
+          "methods": [
+            "movie_modify.media.run",
+            "movie_modify.media.available",
+            "movie_modify.media.inspect_video",
+            "movie_modify.media.view_filter",
+            "movie_modify.media.build_filters",
+            "movie_modify.media.create_proxy",
+            "movie_modify.media.preview_frame",
+            "movie_modify.media.panorama_frame",
+            "movie_modify.media.animated_filter",
+            "movie_modify.media.silence_suggestions",
+            "movie_modify.media.auto_editor_suggestions",
+            "movie_modify.media.render",
+            "movie_modify.media.create_panorama_proxy"
+          ]
+        }
+      ],
+      "component_id": "5",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "入力確認・軽量プレビュー",
+          "description": "FFprobeによるメタデータ取得とH.264プレビュー・パノラマ静止画生成。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.media.panorama_frame",
+              "reference_file": "movie_modify/media.py",
+              "reference_start_line": 78,
+              "reference_end_line": 88
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/media.py",
+              "methods": [
+                "movie_modify.media.inspect_video",
+                "movie_modify.media.create_proxy",
+                "movie_modify.media.preview_frame",
+                "movie_modify.media.panorama_frame",
+                "movie_modify.media.create_panorama_proxy"
+              ]
+            }
+          ],
+          "component_id": "5.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "自動カット候補",
+          "description": "静音検出と任意Auto-Editorを使ったカット候補生成。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.media.auto_editor_suggestions",
+              "reference_file": "movie_modify/media.py",
+              "reference_start_line": 131,
+              "reference_end_line": 138
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/media.py",
+              "methods": [
+                "movie_modify.media.silence_suggestions",
+                "movie_modify.media.auto_editor_suggestions"
+              ]
+            }
+          ],
+          "component_id": "5.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "FFmpeg動画出力",
+          "description": "正距円筒映像のv360投影、動く画角キーフレームの適用、残す区間の再エンコード・結合。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.media.view_filter",
+              "reference_file": "movie_modify/media.py",
+              "reference_start_line": 47,
+              "reference_end_line": 50
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/media.py",
+              "methods": [
+                "movie_modify.media.view_filter",
+                "movie_modify.media.build_filters",
+                "movie_modify.media.animated_filter",
+                "movie_modify.media.render"
+              ]
+            }
+          ],
+          "component_id": "5.3",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "プレビューと本出力に共通のFFmpegを利用",
+          "src_name": "入力確認・軽量プレビュー",
+          "dst_name": "FFmpeg動画出力",
+          "evidence": "media.pyがFFprobeとFFmpegを呼び出す",
+          "key_edges": [],
+          "src_id": "5.1",
+          "dst_id": "5.3",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "360度人物追尾",
+      "description": "選択した人物の外観をOpenCVで追う。曖昧な候補や不自然な位置変化を拒否し、見失った区間を保持して修正を促す。",
+      "key_entities": [
+        {
+          "qualified_name": "movie_modify.tracking.track_panorama",
+          "reference_file": "movie_modify/tracking.py",
+          "reference_start_line": 174,
+          "reference_end_line": 331
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "movie_modify/tracking.py",
+          "methods": [
+            "movie_modify.tracking.RecoveryState",
+            "movie_modify.tracking.RecoveryState.plausible_motion",
+            "movie_modify.tracking.RecoveryState.confirm_reacquisition",
+            "movie_modify.tracking.RecoveryState.radius",
+            "movie_modify.tracking.RecoveryState.accepts",
+            "movie_modify.tracking.RecoveryState.advance",
+            "movie_modify.tracking.RecoveryState.warning",
+            "movie_modify.tracking._match_in_region",
+            "movie_modify.tracking._reference_score",
+            "movie_modify.tracking.track_panorama",
+            "movie_modify.tracking.make_tracker"
+          ]
+        }
+      ],
+      "component_id": "6",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "保守的な追尾状態機械",
+          "description": "外観信頼度、連続2フレームによる再発見確認、境界を跨ぐ距離計算、未検出カウント。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.tracking.RecoveryState.warning",
+              "reference_file": "movie_modify/tracking.py",
+              "reference_start_line": 114,
+              "reference_end_line": 128
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/tracking.py",
+              "methods": [
+                "movie_modify.tracking.RecoveryState",
+                "movie_modify.tracking.RecoveryState.plausible_motion",
+                "movie_modify.tracking.RecoveryState.confirm_reacquisition",
+                "movie_modify.tracking.RecoveryState.radius",
+                "movie_modify.tracking.RecoveryState.accepts",
+                "movie_modify.tracking.RecoveryState.advance",
+                "movie_modify.tracking.RecoveryState.warning"
+              ]
+            }
+          ],
+          "component_id": "6.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "FFmpeg/OpenCV追尾パイプライン",
+          "description": "フレームをデコードしCSRTと元の参照テンプレートを照合、キーフレームと未検出区間へ変換。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.tracking._reference_score",
+              "reference_file": "movie_modify/tracking.py",
+              "reference_start_line": 160,
+              "reference_end_line": 173
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/tracking.py",
+              "methods": [
+                "movie_modify.tracking._match_in_region",
+                "movie_modify.tracking._reference_score",
+                "movie_modify.tracking.track_panorama"
+              ]
+            }
+          ],
+          "component_id": "6.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "受理/棄却と追尾喪失状態を管理",
+          "src_name": "FFmpeg/OpenCV追尾パイプライン",
+          "dst_name": "保守的な追尾状態機械",
+          "evidence": "track_panorama内でRecoveryStateを使用",
+          "key_edges": [],
+          "src_id": "6.2",
+          "dst_id": "6.1",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "Pages→PC転送・同期",
+      "description": "Pagesと同じ編集画面をPCから配信し、利用者が明示確認した素材とEDLだけをLAN内PCに転送。再開可能チャンクとリビジョン競合保護。",
+      "key_entities": [
+        {
+          "qualified_name": "movie_modify.uploads.UploadStore.mark_complete",
+          "reference_file": "movie_modify/uploads.py",
+          "reference_start_line": 135,
+          "reference_end_line": 143
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "docs/bridge_client.js",
+          "methods": [
+            "docs.bridge_client.remembered",
+            "docs.bridge_client.remember",
+            "docs.bridge_client.say",
+            "docs.bridge_client.setBusy",
+            "docs.bridge_client.api",
+            "docs.bridge_client.waitJob",
+            "docs.bridge_client.transferIdentity",
+            "docs.bridge_client.readSession",
+            "docs.bridge_client.saveSession",
+            "docs.bridge_client.forgetSession",
+            "docs.bridge_client.showTransferProgress",
+            "docs.bridge_client.sendChunks",
+            "docs.bridge_client.confirmProject",
+            "docs.bridge_client.action",
+            "docs.bridge_client.nativeRender",
+            "docs.bridge_client.pullFromServer",
+            "docs.bridge_client.showServerHistory",
+            "docs.bridge_client.targetFromInput",
+            "docs.bridge_client.init"
+          ]
+        },
+        {
+          "file_path": "movie_modify/uploads.py",
+          "methods": [
+            "movie_modify.uploads.UploadIssue",
+            "movie_modify.uploads.UploadIssue.__init__",
+            "movie_modify.uploads.UploadStore",
+            "movie_modify.uploads.UploadStore.__init__",
+            "movie_modify.uploads.UploadStore._dir",
+            "movie_modify.uploads.UploadStore._meta",
+            "movie_modify.uploads.UploadStore._save_meta",
+            "movie_modify.uploads.UploadStore.cleanup",
+            "movie_modify.uploads.UploadStore.create",
+            "movie_modify.uploads.UploadStore.status",
+            "movie_modify.uploads.UploadStore.append",
+            "movie_modify.uploads.UploadStore.ready_source",
+            "movie_modify.uploads.UploadStore.mark_complete"
+          ]
+        }
+      ],
+      "component_id": "7",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "ブラウザ連携クライアント",
+          "description": "元動画再選択、EDL引継ぎ、4MiB分割転送と再試行、MP4書き出しおよびPC側更新取得。",
+          "key_entities": [
+            {
+              "qualified_name": "docs.bridge_client.nativeRender",
+              "reference_file": "docs/bridge_client.js",
+              "reference_start_line": 206,
+              "reference_end_line": 215
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "docs/bridge_client.js",
+              "methods": [
+                "docs.bridge_client.showTransferProgress",
+                "docs.bridge_client.sendChunks",
+                "docs.bridge_client.confirmProject",
+                "docs.bridge_client.nativeRender",
+                "docs.bridge_client.pullFromServer",
+                "docs.bridge_client.init"
+              ]
+            }
+          ],
+          "component_id": "7.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "再開可能アップロード管理",
+          "description": "受信済みオフセットをディスクへ記録し、重複送信を防止するアップロードセッション。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.uploads.UploadStore.cleanup",
+              "reference_file": "movie_modify/uploads.py",
+              "reference_start_line": 56,
+              "reference_end_line": 62
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/uploads.py",
+              "methods": [
+                "movie_modify.uploads.UploadIssue",
+                "movie_modify.uploads.UploadStore",
+                "movie_modify.uploads.UploadStore.cleanup",
+                "movie_modify.uploads.UploadStore.create",
+                "movie_modify.uploads.UploadStore.status",
+                "movie_modify.uploads.UploadStore.append",
+                "movie_modify.uploads.UploadStore.ready_source",
+                "movie_modify.uploads.UploadStore.mark_complete"
+              ]
+            }
+          ],
+          "component_id": "7.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "LAN APIで受信済み位置を確認・再送",
+          "src_name": "ブラウザ連携クライアント",
+          "dst_name": "再開可能アップロード管理",
+          "evidence": "bridge_client.jsが /api/uploads/{id}/chunk 等を呼ぶ",
+          "key_edges": [],
+          "src_id": "7.1",
+          "dst_id": "7.2",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    },
+    {
+      "name": "追尾の定量評価",
+      "description": "正解位置つき合成360度動画を作り、追尾の角度誤差・未検出時間・復帰遅延・処理速度をJSONへ保存するオフライン評価基盤。",
+      "key_entities": [
+        {
+          "qualified_name": "web.index.runTrack",
+          "reference_file": "web/index.html",
+          "reference_start_line": 540,
+          "reference_end_line": 563
+        }
+      ],
+      "source_cluster_ids": [],
+      "file_methods": [
+        {
+          "file_path": "movie_modify/benchmark.py",
+          "methods": [
+            "movie_modify.benchmark.wrap_angle",
+            "movie_modify.benchmark.position",
+            "movie_modify.benchmark.generate_case",
+            "movie_modify.benchmark.stamp",
+            "movie_modify.benchmark.predicted_pose",
+            "movie_modify.benchmark.evaluate",
+            "movie_modify.benchmark.run_suite"
+          ]
+        },
+        {
+          "file_path": "web/benchmark.html",
+          "methods": [
+            "web.benchmark.api",
+            "web.benchmark.announce",
+            "web.benchmark.reload",
+            "web.benchmark.display",
+            "web.benchmark.run"
+          ]
+        },
+        {
+          "file_path": "web/index.html",
+          "methods": [
+            "web.index.alertMsg",
+            "web.index.api",
+            "web.index.start",
+            "web.index.loadProjects",
+            "web.index.openProject",
+            "web.index.drawEditor",
+            "web.index.historySnapshot",
+            "web.index.validateHistorySnapshot",
+            "web.index.historyControls",
+            "web.index.drawHistorySteps",
+            "web.index.historyCheckpoint",
+            "web.index.historyApply",
+            "web.index.historyUndo",
+            "web.index.historyRedo",
+            "web.index.exportConflictedDraft",
+            "web.index.initializeEditHistory",
+            "web.index.loadServerEditHistory",
+            "web.index.loadBenchmarkReports",
+            "web.index.showBenchmarkReport",
+            "web.index.downloadBenchmarkReport",
+            "web.index.startSyntheticBenchmark",
+            "web.index.drawSuggestions",
+            "web.index.navigateTrackingGap",
+            "web.index.nextTrackingGap",
+            "web.index.drawSegments",
+            "web.index.splitHere",
+            "web.index.toggleSelected",
+            "web.index.saveSegments",
+            "web.index.updateFrame",
+            "web.index.analyzeVideo",
+            "web.index.applySelected",
+            "web.index.renderVideo",
+            "web.index.watchJob",
+            "web.index.disposeLive",
+            "web.index.syncLiveUi",
+            "web.index.setupLivePreview",
+            "web.index.wrapYaw",
+            "web.index.cameraAt",
+            "web.index.sliceCamera",
+            "web.index.sceneryHere",
+            "web.index.changePanoMode",
+            "web.index.refreshPanorama",
+            "web.index.panoClick",
+            "web.index.addKey",
+            "web.index.runTrack"
+          ]
+        }
+      ],
+      "component_id": "8",
+      "can_expand": true,
+      "components": [
+        {
+          "name": "合成動画・評価エンジン",
+          "description": "通常移動、パノラマ境界、遮蔽、類似対象を再現し実行結果をJSONレポートに集約。",
+          "key_entities": [
+            {
+              "qualified_name": "movie_modify.benchmark.run_suite",
+              "reference_file": "movie_modify/benchmark.py",
+              "reference_start_line": 190,
+              "reference_end_line": 240
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "movie_modify/benchmark.py",
+              "methods": [
+                "movie_modify.benchmark.position",
+                "movie_modify.benchmark.generate_case",
+                "movie_modify.benchmark.predicted_pose",
+                "movie_modify.benchmark.evaluate",
+                "movie_modify.benchmark.run_suite"
+              ]
+            }
+          ],
+          "component_id": "8.1",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        },
+        {
+          "name": "実行・比較画面",
+          "description": "PCの/benchmarkで合成評価を実行し過去結果と比較・ダウンロードする。",
+          "key_entities": [
+            {
+              "qualified_name": "web.index.loadBenchmarkReports",
+              "reference_file": "web/index.html",
+              "reference_start_line": 262,
+              "reference_end_line": 283
+            }
+          ],
+          "source_cluster_ids": [],
+          "file_methods": [
+            {
+              "file_path": "web/benchmark.html",
+              "methods": [
+                "web.benchmark.reload",
+                "web.benchmark.display",
+                "web.benchmark.run"
+              ]
+            },
+            {
+              "file_path": "web/index.html",
+              "methods": [
+                "web.index.loadBenchmarkReports",
+                "web.index.showBenchmarkReport",
+                "web.index.startSyntheticBenchmark"
+              ]
+            }
+          ],
+          "component_id": "8.2",
+          "can_expand": false,
+          "components": [],
+          "components_relations": []
+        }
+      ],
+      "components_relations": [
+        {
+          "relation": "HTTPジョブで合成評価を起動",
+          "src_name": "実行・比較画面",
+          "dst_name": "合成動画・評価エンジン",
+          "evidence": "web/benchmark.htmlが /api/benchmarks/run を呼ぶ",
+          "key_edges": [],
+          "src_id": "8.2",
+          "dst_id": "8.1",
+          "is_static": false,
+          "all_edges": []
+        }
+      ]
+    }
+  ],
+  "components_relations": [
+    {
+      "relation": "ローカルPCへの動画同期と編集JSON引継ぎ",
+      "src_name": "Pages/Studioブラウザ編集",
+      "dst_name": "Pages→PC転送・同期",
+      "evidence": "docs/pages.js の編集データを docs/bridge_client.js が取得し、ユーザー確認後にPCへ送信",
+      "key_edges": [],
+      "src_id": "1",
+      "dst_id": "7",
+      "is_static": false,
+      "all_edges": []
+    },
+    {
+      "relation": "PythonバックエンドとEDL形式を共有",
+      "src_name": "Pages/Studioブラウザ編集",
+      "dst_name": "編集データ（EDL）・幾何",
+      "evidence": "docs/pages.jsのsegmentsとmovie_modify/core.pyのnormalize_segmentsは同一編集概念を扱う",
+      "key_edges": [],
+      "src_id": "1",
+      "dst_id": "4",
+      "is_static": false,
+      "all_edges": []
+    },
+    {
+      "relation": "REST APIでプロジェクトを読み書きする",
+      "src_name": "PC詳細エディター",
+      "dst_name": "FastAPI・プロジェクト管理",
+      "evidence": "web/index.html のapi(), saveSegments(), runTrack(), renderVideo()が/api/*を呼ぶ",
+      "key_edges": [],
+      "src_id": "2",
+      "dst_id": "3",
+      "is_static": false,
+      "all_edges": []
+    },
+    {
+      "relation": "人物追尾を開始し失敗区間を確認する",
+      "src_name": "PC詳細エディター",
+      "dst_name": "360度人物追尾",
+      "evidence": "web/index.html のrunTrack()が /api/projects/{id}/track を呼びtracking_gapsを表示",
+      "key_edges": [],
+      "src_id": "2",
+      "dst_id": "6",
+      "is_static": false,
+      "all_edges": []
+    },
+    {
+      "relation": "追尾の定量評価と過去結果を操作する",
+      "src_name": "PC詳細エディター",
+      "dst_name": "追尾の定量評価",
+      "evidence": "web/index.html のstartSyntheticBenchmark()から /api/benchmarks/runを呼び出す",
+      "key_edges": [],
+      "src_id": "2",
+      "dst_id": "8",
+      "is_static": false,
+      "all_edges": []
+    },
+    {
+      "relation": "区間の検証とカット候補の適用を委譲",
+      "src_name": "FastAPI・プロジェクト管理",
+      "dst_name": "編集データ（EDL）・幾何",
+      "evidence": "movie_modify/server.pyからnormalize_segmentsなどを呼び出す",
+      "key_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.save_edits",
+          "target": "movie_modify/core.py|movie_modify.core.normalize_segments",
+          "call_sites": [],
+          "description": "サーバーが受け取ったEDLを検証・正規化"
+        }
+      ],
+      "src_id": "3",
+      "dst_id": "4",
+      "is_static": false,
+      "all_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.save_edits",
+          "target": "movie_modify/core.py|movie_modify.core.normalize_segments",
+          "call_sites": [],
+          "description": "サーバーが受け取ったEDLを検証・正規化"
+        }
+      ]
+    },
+    {
+      "relation": "プレビューとFFmpeg書き出しを制御",
+      "src_name": "FastAPI・プロジェクト管理",
+      "dst_name": "FFmpeg/FFprobe メディア処理",
+      "evidence": "movie_modify/server.pyがmovie_modify/media.pyのinspect_video/render/create_proxyを利用",
+      "key_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.import_video",
+          "target": "movie_modify/media.py|movie_modify.media.inspect_video",
+          "call_sites": [],
+          "description": "取り込んだ動画のメタデータを取得"
+        },
+        {
+          "source": "movie_modify/server.py|movie_modify.server.render_project",
+          "target": "movie_modify/media.py|movie_modify.media.render",
+          "call_sites": [],
+          "description": "FFmpegレンダーをジョブ起動"
+        }
+      ],
+      "src_id": "3",
+      "dst_id": "5",
+      "is_static": false,
+      "all_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.import_video",
+          "target": "movie_modify/media.py|movie_modify.media.inspect_video",
+          "call_sites": [],
+          "description": "取り込んだ動画のメタデータを取得"
+        },
+        {
+          "source": "movie_modify/server.py|movie_modify.server.render_project",
+          "target": "movie_modify/media.py|movie_modify.media.render",
+          "call_sites": [],
+          "description": "FFmpegレンダーをジョブ起動"
+        }
+      ]
+    },
+    {
+      "relation": "追尾ジョブを起動してEDLを更新",
+      "src_name": "FastAPI・プロジェクト管理",
+      "dst_name": "360度人物追尾",
+      "evidence": "movie_modify/server.pyのtrack()がmovie_modify/tracking.pyのtrack_panorama()へ処理を委譲",
+      "key_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.track",
+          "target": "movie_modify/tracking.py|movie_modify.tracking.track_panorama",
+          "call_sites": [],
+          "description": "ローカルの人物追尾を開始"
+        }
+      ],
+      "src_id": "3",
+      "dst_id": "6",
+      "is_static": false,
+      "all_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.track",
+          "target": "movie_modify/tracking.py|movie_modify.tracking.track_panorama",
+          "call_sites": [],
+          "description": "ローカルの人物追尾を開始"
+        }
+      ]
+    },
+    {
+      "relation": "LANアップロードのAPIとプロジェクトへの登録",
+      "src_name": "FastAPI・プロジェクト管理",
+      "dst_name": "Pages→PC転送・同期",
+      "evidence": "movie_modify/server.pyはUploadStoreのセッション作成、チャンク受信、完了処理を扱う",
+      "key_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.create_resumable_upload",
+          "target": "movie_modify/uploads.py|movie_modify.uploads.UploadStore.create",
+          "call_sites": [],
+          "description": "アップロードセッション開始"
+        }
+      ],
+      "src_id": "3",
+      "dst_id": "7",
+      "is_static": false,
+      "all_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.create_resumable_upload",
+          "target": "movie_modify/uploads.py|movie_modify.uploads.UploadStore.create",
+          "call_sites": [],
+          "description": "アップロードセッション開始"
+        }
+      ]
+    },
+    {
+      "relation": "合成ベンチマークを非同期ジョブに載せる",
+      "src_name": "FastAPI・プロジェクト管理",
+      "dst_name": "追尾の定量評価",
+      "evidence": "movie_modify/server.py の benchmark_start() は run_suite を呼ぶ",
+      "key_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.benchmark_start",
+          "target": "movie_modify/benchmark.py|movie_modify.benchmark.run_suite",
+          "call_sites": [],
+          "description": "合成評価スイート起動"
+        }
+      ],
+      "src_id": "3",
+      "dst_id": "8",
+      "is_static": false,
+      "all_edges": [
+        {
+          "source": "movie_modify/server.py|movie_modify.server.benchmark_start",
+          "target": "movie_modify/benchmark.py|movie_modify.benchmark.run_suite",
+          "call_sites": [],
+          "description": "合成評価スイート起動"
+        }
+      ]
+    },
+    {
+      "relation": "バージョン付きEDLと元動画をPC APIへ送信",
+      "src_name": "Pages→PC転送・同期",
+      "dst_name": "FastAPI・プロジェクト管理",
+      "evidence": "bridge_client.jsからFastAPI /api/uploads/* /api/projects/*を明示呼び出し",
+      "key_edges": [],
+      "src_id": "7",
+      "dst_id": "3",
+      "is_static": false,
+      "all_edges": []
+    },
+    {
+      "relation": "評価用合成動画で追尾エンジンを試験",
+      "src_name": "追尾の定量評価",
+      "dst_name": "360度人物追尾",
+      "evidence": "movie_modify/benchmark.pyはtrack_panorama()のキーフレーム、警告、未検出区間を評価",
+      "key_edges": [
+        {
+          "source": "movie_modify/benchmark.py|movie_modify.benchmark.run_suite",
+          "target": "movie_modify/tracking.py|movie_modify.tracking.track_panorama",
+          "call_sites": [],
+          "description": "既存OpenCV追尾器を実行"
+        }
+      ],
+      "src_id": "8",
+      "dst_id": "6",
+      "is_static": false,
+      "all_edges": [
+        {
+          "source": "movie_modify/benchmark.py|movie_modify.benchmark.run_suite",
+          "target": "movie_modify/tracking.py|movie_modify.tracking.track_panorama",
+          "call_sites": [],
+          "description": "既存OpenCV追尾器を実行"
+        }
+      ]
+    },
+    {
+      "relation": "EDLの保持/除外・キーフレーム値を映像へ反映",
+      "src_name": "FFmpeg/FFprobe メディア処理",
+      "dst_name": "編集データ（EDL）・幾何",
+      "evidence": "movie_modify/media.py render()は正規化済みsegmentsとkeyframesを参照する",
+      "key_edges": [],
+      "src_id": "5",
+      "dst_id": "4",
+      "is_static": false,
+      "all_edges": []
+    }
+  ]
+}
