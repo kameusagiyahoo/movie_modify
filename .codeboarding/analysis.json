@@ -1,15 +1,17 @@
 {
   "metadata": {
-    "generated_at": "2026-10-22T09:00:00+09:00",
+    "generated_at": "2026-10-22T18:50:00+09:00",
     "source_tree_hash": "",
     "repo_name": "movie_modify",
     "depth_level": 2,
     "depth_cap": 2,
     "file_coverage_summary": {
-      "total_files": 17,
+      "total_files": 88,
       "analyzed": 17,
-      "not_analyzed": 0,
-      "not_analyzed_by_reason": {}
+      "not_analyzed": 71,
+      "not_analyzed_by_reason": {
+        "other": 71
+      }
     },
     "tree_spec": {}
   },
@@ -2329,10 +2331,22 @@
       "description": "GitHub PagesとPCが配信する共通ブラウザ編集画面。素材の選択、タイムライン、画角キーフレーム、WebGL再生および端末内の編集下書きを担う。",
       "key_entities": [
         {
-          "qualified_name": "docs.edit_history.EditHistory",
-          "reference_file": "docs/edit_history.js",
-          "reference_start_line": 21,
-          "reference_end_line": 50
+          "qualified_name": "docs.pages.renderTimeline",
+          "reference_file": "docs/pages.js",
+          "reference_start_line": 303,
+          "reference_end_line": 314
+        },
+        {
+          "qualified_name": "docs.pages.openVideo",
+          "reference_file": "docs/pages.js",
+          "reference_start_line": 201,
+          "reference_end_line": 214
+        },
+        {
+          "qualified_name": "docs.live_preview.LivePanoramaPreview",
+          "reference_file": "docs/live_preview.js",
+          "reference_start_line": 11,
+          "reference_end_line": 40
         }
       ],
       "source_cluster_ids": [],
@@ -2548,10 +2562,22 @@
       "description": "Windows/Linux FastAPIで配信するローカルの高度編集画面。人物追尾操作、手動補正、静音解析、出力、PC保存履歴、進捗表示。",
       "key_entities": [
         {
-          "qualified_name": "web.live_preview.LivePanoramaPreview",
-          "reference_file": "web/live_preview.js",
-          "reference_start_line": 40,
-          "reference_end_line": 69
+          "qualified_name": "web.index.drawEditor",
+          "reference_file": "web/index.html",
+          "reference_start_line": 59,
+          "reference_end_line": 94
+        },
+        {
+          "qualified_name": "web.index.runTrack",
+          "reference_file": "web/index.html",
+          "reference_start_line": 540,
+          "reference_end_line": 563
+        },
+        {
+          "qualified_name": "web.responsive_ui.mount",
+          "reference_file": "web/responsive_ui.js",
+          "reference_start_line": 86,
+          "reference_end_line": 213
         }
       ],
       "source_cluster_ids": [],
@@ -2755,10 +2781,22 @@
       "description": "PC上のREST APIとジョブキュー、動画プロジェクトの読込/保存、認証、衝突回避を管理。元動画はPCローカルに保存される。",
       "key_entities": [
         {
-          "qualified_name": "movie_modify.__main__.main",
-          "reference_file": "movie_modify/__main__.py",
-          "reference_start_line": 15,
-          "reference_end_line": 62
+          "qualified_name": "movie_modify.server.save_edits",
+          "reference_file": "movie_modify/server.py",
+          "reference_start_line": 669,
+          "reference_end_line": 680
+        },
+        {
+          "qualified_name": "movie_modify.server.import_video",
+          "reference_file": "movie_modify/server.py",
+          "reference_start_line": 459,
+          "reference_end_line": 511
+        },
+        {
+          "qualified_name": "movie_modify.server._job",
+          "reference_file": "movie_modify/server.py",
+          "reference_start_line": 270,
+          "reference_end_line": 297
         }
       ],
       "source_cluster_ids": [],
@@ -2950,10 +2988,22 @@
       "description": "非破壊の区間構造、カット指示とカメラ方向（yaw/pitch/FOV）の補間・正規化。",
       "key_entities": [
         {
-          "qualified_name": "movie_modify.core.parse_auto_editor_v1",
+          "qualified_name": "movie_modify.core.normalize_segments",
           "reference_file": "movie_modify/core.py",
-          "reference_start_line": 165,
-          "reference_end_line": 178
+          "reference_start_line": 21,
+          "reference_end_line": 95
+        },
+        {
+          "qualified_name": "movie_modify.core.apply_suggestions",
+          "reference_file": "movie_modify/core.py",
+          "reference_start_line": 149,
+          "reference_end_line": 164
+        },
+        {
+          "qualified_name": "movie_modify.core.camera_at",
+          "reference_file": "movie_modify/core.py",
+          "reference_start_line": 100,
+          "reference_end_line": 118
         }
       ],
       "source_cluster_ids": [],
@@ -3052,10 +3102,22 @@
       "description": "入力動画の形式解析、プロキシ生成、360度の静止画と音声解析、非破壊編集指示に基づいたMP4再エンコード。",
       "key_entities": [
         {
-          "qualified_name": "movie_modify.media.create_panorama_proxy",
+          "qualified_name": "movie_modify.media.render",
           "reference_file": "movie_modify/media.py",
-          "reference_start_line": 188,
-          "reference_end_line": 202
+          "reference_start_line": 139,
+          "reference_end_line": 187
+        },
+        {
+          "qualified_name": "movie_modify.media.inspect_video",
+          "reference_file": "movie_modify/media.py",
+          "reference_start_line": 32,
+          "reference_end_line": 46
+        },
+        {
+          "qualified_name": "movie_modify.media.create_proxy",
+          "reference_file": "movie_modify/media.py",
+          "reference_start_line": 60,
+          "reference_end_line": 66
         }
       ],
       "source_cluster_ids": [],
@@ -3189,6 +3251,18 @@
           "reference_file": "movie_modify/tracking.py",
           "reference_start_line": 174,
           "reference_end_line": 331
+        },
+        {
+          "qualified_name": "movie_modify.tracking.RecoveryState",
+          "reference_file": "movie_modify/tracking.py",
+          "reference_start_line": 17,
+          "reference_end_line": 128
+        },
+        {
+          "qualified_name": "movie_modify.tracking._match_in_region",
+          "reference_file": "movie_modify/tracking.py",
+          "reference_start_line": 129,
+          "reference_end_line": 159
         }
       ],
       "source_cluster_ids": [],
@@ -3291,9 +3365,21 @@
       "description": "Pagesと同じ編集画面をPCから配信し、利用者が明示確認した素材とEDLだけをLAN内PCに転送。再開可能チャンクとリビジョン競合保護。",
       "key_entities": [
         {
-          "qualified_name": "movie_modify.uploads.UploadStore.mark_complete",
+          "qualified_name": "docs.bridge_client.sendChunks",
+          "reference_file": "docs/bridge_client.js",
+          "reference_start_line": 93,
+          "reference_end_line": 147
+        },
+        {
+          "qualified_name": "docs.bridge_client.confirmProject",
+          "reference_file": "docs/bridge_client.js",
+          "reference_start_line": 148,
+          "reference_end_line": 199
+        },
+        {
+          "qualified_name": "movie_modify.uploads.UploadStore",
           "reference_file": "movie_modify/uploads.py",
-          "reference_start_line": 135,
+          "reference_start_line": 29,
           "reference_end_line": 143
         }
       ],
@@ -3427,10 +3513,22 @@
       "description": "正解位置つき合成360度動画を作り、追尾の角度誤差・未検出時間・復帰遅延・処理速度をJSONへ保存するオフライン評価基盤。",
       "key_entities": [
         {
-          "qualified_name": "web.index.runTrack",
-          "reference_file": "web/index.html",
-          "reference_start_line": 540,
-          "reference_end_line": 563
+          "qualified_name": "movie_modify.benchmark.run_suite",
+          "reference_file": "movie_modify/benchmark.py",
+          "reference_start_line": 190,
+          "reference_end_line": 240
+        },
+        {
+          "qualified_name": "movie_modify.benchmark.generate_case",
+          "reference_file": "movie_modify/benchmark.py",
+          "reference_start_line": 45,
+          "reference_end_line": 106
+        },
+        {
+          "qualified_name": "movie_modify.benchmark.evaluate",
+          "reference_file": "movie_modify/benchmark.py",
+          "reference_start_line": 123,
+          "reference_end_line": 189
         }
       ],
       "source_cluster_ids": [],
